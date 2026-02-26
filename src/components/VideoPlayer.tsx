@@ -59,7 +59,7 @@ export default function VideoPlayer({ srcWebm, srcMp4, poster }: VideoPlayerProp
         aria-label={isPlaying ? 'Pause video' : 'Play video'}
       >
         <div className={`
-          w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg
+          w-16 h-16 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center shadow-lg
           ${isPlaying ? 'hidden' : 'flex'}
         `}>
           <svg
@@ -68,13 +68,13 @@ export default function VideoPlayer({ srcWebm, srcMp4, poster }: VideoPlayerProp
             height="24"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-8 h-8 text-foreground ml-1"
+            className="w-8 h-8 ml-1 text-neutral-900 dark:text-white"
           >
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
         </div>
         <div className={`
-          w-16 h-16 bg-white/90 rounded-full items-center justify-center shadow-lg
+          w-16 h-16 bg-white dark:bg-neutral-800 rounded-full items-center justify-center shadow-lg
           ${isPlaying ? 'flex' : 'hidden'}
         `}>
           <svg
@@ -83,7 +83,7 @@ export default function VideoPlayer({ srcWebm, srcMp4, poster }: VideoPlayerProp
             height="24"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-8 h-8 text-foreground"
+            className="w-8 h-8 text-neutral-900 dark:text-white"
           >
             <rect x="6" y="4" width="4" height="16" />
             <rect x="14" y="4" width="4" height="16" />
