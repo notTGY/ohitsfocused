@@ -1,4 +1,6 @@
 ---
+import VideoPlayer from '@/components/VideoPlayer';
+import "@/styles/global.css"
 ---
 
 <html lang="en">
@@ -9,12 +11,33 @@
 		<meta name="generator" content={Astro.generator} />
 		<title>Oh it's focused</title>
 	</head>
-	<body>
-		<h1>Oh it's focused</h1>
+	<body class="min-h-screen bg-background text-foreground antialiased">
+		<main class="max-w-6xl mx-auto px-6 py-6 md:py-8 min-h-screen flex items-center">
+			<div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center w-full">
+				<div>
+					<VideoPlayer 
+						client:load
+						srcWebm="/ohitsfocused.webm" 
+						srcMp4="/ohitsfocused.mp4" 
+					/>
+				</div>
 
-		<video controls>
-			<source src="/ohitsfocused.webm" type="video/webm" />
-			<source src="/ohitsfocused.mp4" type="video/mp4" />
-		</video>
+				<div class="space-y-6">
+					<p class="text-lg text-muted-foreground leading-relaxed">
+                                        How would you say your mental focus is?
+					</p>
+					<p class="text-lg text-muted-foreground leading-relaxed">
+                                        Oh, it's focused.
+                                        Look, I have trouble even mentioning,
+                                        even saying to myself in my own head the number of years.
+                                        I no more think of myself as being as old as I am than fly.
+                                        I mean, it's just not...
+                                        I haven't observed anything in terms of...
+                                        There's not things I don't do now that I did before,
+                                        whether it's physical or mental or anything else.
+					</p>
+				</div>
+			</div>
+		</main>
 	</body>
 </html>
