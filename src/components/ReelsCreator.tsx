@@ -129,9 +129,6 @@ function wrapText(context: CanvasRenderingContext2D, text: string, maxWidth: num
 
     lines.push(currentLine);
 
-    if (index < paragraphs.length - 1 && trimmed) {
-      lines.push('');
-    }
   }
 
   return lines;
