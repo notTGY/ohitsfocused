@@ -16,7 +16,6 @@ import {
   Play,
   RotateCcw,
   Sparkles,
-  Type,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -75,29 +74,6 @@ function getSupportedMimeType() {
   ];
 
   return candidates.find((candidate) => MediaRecorder.isTypeSupported(candidate)) ?? '';
-}
-
-function drawRoundedRectPath(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  const safeRadius = Math.min(radius, width / 2, height / 2);
-
-  context.beginPath();
-  context.moveTo(x + safeRadius, y);
-  context.lineTo(x + width - safeRadius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
-  context.lineTo(x + width, y + height - safeRadius);
-  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
-  context.lineTo(x + safeRadius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
-  context.lineTo(x, y + safeRadius);
-  context.quadraticCurveTo(x, y, x + safeRadius, y);
-  context.closePath();
 }
 
 function drawCoverImage(
@@ -165,16 +141,16 @@ function drawTextBlock(
   context: CanvasRenderingContext2D,
   text: string,
   font: FontOption,
-  boxX: number,
-  boxY: number,
-  boxWidth: number,
-  boxHeight: number,
+  areaX: number,
+  areaY: number,
+  areaWidth: number,
+  areaHeight: number,
 ) {
   const content = text.trim() || DEFAULT_TEXT;
   const horizontalPadding = 44;
   const verticalPadding = 36;
-  const maxWidth = boxWidth - horizontalPadding * 2;
-  const maxHeight = boxHeight - verticalPadding * 2;
+  const maxWidth = areaWidth - horizontalPadding * 2;
+  const maxHeight = areaHeight - verticalPadding * 2;
 
   let fontSize = 78;
   let lines = [content];
@@ -201,10 +177,10 @@ function drawTextBlock(
   context.shadowBlur = 24;
   context.shadowOffsetY = 10;
 
-  const textStartY = boxY + (boxHeight - lines.length * lineHeight) / 2;
+  const textStartY = areaY + (areaHeight - lines.length * lineHeight) / 2;
 
   lines.forEach((line, index) => {
-    context.fillText(line, boxX + boxWidth / 2, textStartY + index * lineHeight);
+    context.fillText(line, areaX + areaWidth / 2, textStartY + index * lineHeight);
   });
 
   context.restore();
@@ -229,19 +205,12 @@ function drawFrame(
   context.fillStyle = topGradient;
   context.fillRect(0, 0, width, height);
 
-  const boxWidth = width * 0.82;
-  const boxHeight = height * 0.24;
-  const boxX = (width - boxWidth) / 2;
-  const boxY = height * 0.12;
+  const textAreaWidth = width * 0.82;
+  const textAreaHeight = height * 0.24;
+  const textAreaX = (width - textAreaWidth) / 2;
+  const textAreaY = height * 0.12;
 
-  drawRoundedRectPath(context, boxX, boxY, boxWidth, boxHeight, 34);
-  context.fillStyle = 'rgba(18, 18, 20, 0.22)';
-  context.fill();
-  context.strokeStyle = 'rgba(255, 255, 255, 0.16)';
-  context.lineWidth = 2;
-  context.stroke();
-
-  drawTextBlock(context, text, font, boxX, boxY, boxWidth, boxHeight);
+  drawTextBlock(context, text, font, textAreaX, textAreaY, textAreaWidth, textAreaHeight);
 }
 
 function loadImage(source: string) {
@@ -254,7 +223,7 @@ function loadImage(source: string) {
 }
 
 function clampInterval(value: number) {
-  return Math.min(10, Math.max(1, Math.round(value)));
+  return Math.min(2, Math.max(0.1, Math.round(value * 10) / 10));
 }
 
 interface ActionButtonProps {
@@ -299,7 +268,7 @@ export default function ReelsCreator() {
   const [imageName, setImageName] = useState('');
   const [text, setText] = useState(DEFAULT_TEXT);
   const [selectedFontIds, setSelectedFontIds] = useState<string[]>(['inter', 'space-grotesk', 'playfair']);
-  const [changeIntervalSeconds, setChangeIntervalSeconds] = useState(4);
+  const [changeIntervalSeconds, setChangeIntervalSeconds] = useState(0.8);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(true);
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
@@ -388,7 +357,7 @@ export default function ReelsCreator() {
     setImageName('');
     setText(DEFAULT_TEXT);
     setSelectedFontIds(['inter', 'space-grotesk', 'playfair']);
-    setChangeIntervalSeconds(4);
+    setChangeIntervalSeconds(0.8);
     setIsPreviewPlaying(true);
     setCurrentFontIndex(0);
     setExportProgressSeconds(0);
@@ -443,7 +412,7 @@ export default function ReelsCreator() {
 
       drawFrame(context, image, text, activeFonts[0] ?? FONT_OPTIONS[0]);
 
-      stream = canvas.captureStream(15);
+      stream = canvas.captureStream(30);
 
       const mimeType = getSupportedMimeType();
       const recorder = mimeType
@@ -506,7 +475,7 @@ export default function ReelsCreator() {
       const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
       setVideoObjectUrl(URL.createObjectURL(blob));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not export the reel.';
+      const message = error instanceof Error ? error.message : 'Could not export the font cycle.';
       setErrorMessage(message);
     } finally {
       if (animationFrameId) {
@@ -566,7 +535,7 @@ export default function ReelsCreator() {
         <div className="flex items-center justify-between rounded-3xl border border-border bg-card px-4 py-3 shadow-sm">
           <div>
             <p className="text-sm font-medium text-card-foreground">Preview</p>
-            <p className="text-xs text-muted-foreground">One image, one minute, rotating fonts.</p>
+            <p className="text-xs text-muted-foreground">Edit the headline directly on the image.</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -580,7 +549,7 @@ export default function ReelsCreator() {
             >
               {isPreviewPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </ActionButton>
-            <ActionButton disabled={!canExport} label="Generate 60s video" onClick={handleExport}>
+            <ActionButton disabled={!canExport} label="Generate font cycle" onClick={handleExport}>
               <Sparkles className="h-4 w-4" />
             </ActionButton>
             <ActionButton label="Reset creator" onClick={resetCreator}>
@@ -595,23 +564,32 @@ export default function ReelsCreator() {
               <img alt="Uploaded background preview" className="h-full w-full object-cover" src={imageUrl} />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(24,24,27,0.08),_transparent_55%),linear-gradient(180deg,_rgba(24,24,27,0.08),_rgba(24,24,27,0.02))] px-8 text-center text-sm text-muted-foreground">
-                Drop an image here to build the reel.
+                Drop an image here to build the font cycle.
               </div>
             )}
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-transparent" />
 
-            <div className="absolute left-1/2 top-[12%] w-[82%] -translate-x-1/2 rounded-[1.75rem] border border-white/20 bg-black/20 px-6 py-7 text-center text-white shadow-2xl backdrop-blur-sm">
-              <p
-                className="whitespace-pre-wrap text-2xl font-bold leading-tight md:text-[2rem]"
-                style={{ fontFamily: previewFont.cssFamily }}
-              >
-                {text.trim() || DEFAULT_TEXT}
-              </p>
-            </div>
+            <textarea
+              aria-label="Overlay text"
+              className="absolute left-1/2 top-[12%] h-[24%] w-[82%] -translate-x-1/2 resize-none border-none bg-transparent px-2 py-3 text-center text-2xl font-bold leading-tight text-white outline-none placeholder:text-white/60 md:text-[2rem]"
+              maxLength={220}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="Type directly on the image"
+              spellCheck={false}
+              style={{
+                fontFamily: previewFont.cssFamily,
+                textShadow: '0 10px 28px rgba(0, 0, 0, 0.35)',
+              }}
+              value={text}
+            />
 
             <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
               <span>{previewFont.label}</span>
+            </div>
+
+            <div className="absolute bottom-4 right-4 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
+              {text.length}/220
             </div>
           </div>
         </div>
@@ -623,7 +601,7 @@ export default function ReelsCreator() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Switch</p>
-            <p className="mt-2 text-lg font-semibold text-card-foreground">{changeIntervalSeconds}s</p>
+            <p className="mt-2 text-lg font-semibold text-card-foreground">{changeIntervalSeconds.toFixed(1)}s</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Fonts</p>
@@ -641,7 +619,7 @@ export default function ReelsCreator() {
 
               <a
                 className="group relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                download="instagram-reel-font-cycle.webm"
+                download="font-cycle.webm"
                 href={exportedVideoUrl}
               >
                 <Download className="h-4 w-4" />
@@ -695,33 +673,9 @@ export default function ReelsCreator() {
               {imageName || 'Drop a portrait image or tap to browse'}
             </p>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              A tall image works best because the export renders in a 9:16 reels format.
+              A tall image works best because the export renders in a 9:16 vertical format.
             </p>
           </label>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <Type className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground">Overlay text</h2>
-              <p className="text-sm text-muted-foreground">The text stays fixed near the top while the font rotates.</p>
-            </div>
-          </div>
-
-          <textarea
-            className="min-h-40 w-full rounded-[1.5rem] border border-input bg-background px-4 py-4 text-base text-foreground shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            maxLength={220}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="Add the message you want on top of the image."
-            value={text}
-          />
-          <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-            <span>Use line breaks if you want a stacked headline.</span>
-            <span>{text.length}/220</span>
-          </div>
         </section>
 
         <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
@@ -757,7 +711,7 @@ export default function ReelsCreator() {
                       {font.label}
                     </p>
                     <p className={cn('text-sm', isSelected ? 'text-background/70' : 'text-muted-foreground')}>
-                      Included in the reel rotation.
+                      Included in the font rotation.
                     </p>
                   </div>
                   <span
@@ -774,7 +728,7 @@ export default function ReelsCreator() {
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            The reel loops through the selected fonts in the order you choose them.
+            The font cycle follows the order you choose the fonts.
           </p>
         </section>
 
@@ -792,20 +746,21 @@ export default function ReelsCreator() {
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px] md:items-center">
             <input
               className="w-full accent-foreground"
-              max={10}
-              min={1}
+              max={2}
+              min={0.1}
               onChange={(event) => setChangeIntervalSeconds(clampInterval(Number(event.target.value)))}
+              step={0.1}
               type="range"
               value={changeIntervalSeconds}
             />
             <div className="rounded-[1.25rem] border border-input bg-background px-4 py-3 text-center">
-              <span className="text-2xl font-semibold text-foreground">{changeIntervalSeconds}</span>
+              <span className="text-2xl font-semibold text-foreground">{changeIntervalSeconds.toFixed(1)}</span>
               <span className="ml-1 text-sm text-muted-foreground">sec</span>
             </div>
           </div>
 
           <div className="mt-4 grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
-            <p>Preview switches every {changeIntervalSeconds} seconds.</p>
+            <p>Preview switches every {changeIntervalSeconds.toFixed(1)} seconds.</p>
             <p>Keep the tab visible while exporting. Rendering runs in real time for the full minute.</p>
           </div>
         </section>
@@ -828,7 +783,7 @@ export default function ReelsCreator() {
               disabled={!canExport}
               onClick={handleExport}
             >
-              {isExporting ? `Rendering ${exportProgressSeconds}s / 60s` : 'Generate 60s reel'}
+              {isExporting ? `Rendering ${exportProgressSeconds}s / 60s` : 'Generate font cycle'}
             </button>
           </div>
 
