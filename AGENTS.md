@@ -1,9 +1,9 @@
 # Project guidelines
 
 ## Stack
-- Astro 5 with React 19 and strict TypeScript; JSX lives in `.tsx` files.
+- Astro 5 with React 19 and strict TypeScript; React pages use `.jsx` or `.tsx` files.
 - Tailwind CSS 4 via Vite, shadcn/Radix tooling, and `lucide-react` icons.
-- Bun for dependencies and scripts: `bun install`, `bun dev`, `bun build`, `bun preview`.
+- Bun for dependencies and scripts: `bun install`, `bun dev`, `bun run build`, `bun preview`.
 - Routes live in `src/pages/`, React components in `src/components/`, shared styles in `src/styles/global.css`, and static assets in `public/`. `@/` resolves to `src/`.
 
 ## Single-file pages
@@ -20,5 +20,5 @@
 - Remove code made obsolete by your change and keep edits focused.
 
 ## Validation
-- Run `bun build` after application changes and check affected interactions in the browser when available. There are no configured test or lint scripts.
+- Run `bun run build` after application changes and check affected interactions in the browser when available. Run relevant existing tests for changed logic.
 - Documentation-only edits do not need a build.
