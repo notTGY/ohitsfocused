@@ -121,6 +121,20 @@
     }
   body {
      @apply bg-background text-foreground;
-     font-family: "Inter", system-ui, sans-serif;
+     font-family: ui-sans-serif, system-ui, sans-serif;
      }
+}
+
+@layer base {
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; --foreground: oklch(0.87 0 0); }
+  body { min-width: 280px; }
+  button, summary, a, input, select, textarea { touch-action: manipulation; }
+  button, summary { cursor: pointer; }
+  button { white-space: normal; }
+  :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+  input[type="range"], summary { min-height: 44px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
 }

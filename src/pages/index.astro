@@ -1,68 +1,31 @@
 ---
-import VideoPlayer from '@/components/VideoPlayer';
-import "@/styles/global.css"
+import '@/styles/global.css';
+const tools = [
+  { href: 'font-cycle', name: 'Font cycle', description: 'An image, your words, changing fonts.' },
+  { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Two frames from a wide video. One vertical edit.' },
+  { href: 'transcribe-reels', name: 'Video to text', description: 'Spoken words, ready to copy.' },
+];
 ---
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" href="/apple-touch-icon.png" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Oh it's focused</title>
-		<script is:inline>
-			if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-				document.documentElement.classList.add('dark');
-			}
-		</script>
-	</head>
-	<body class="min-h-screen bg-background text-foreground antialiased">
-		<main class="max-w-6xl mx-auto px-6 py-6 md:py-8 min-h-screen flex items-center">
-			<div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center w-full">
-				<div>
-					<VideoPlayer 
-						client:load
-						srcWebm="/ohitsfocused.webm" 
-						srcMp4="/ohitsfocused.mp4" 
-					/>
-				</div>
-
-				<div class="space-y-6">
-					<p class="text-lg text-muted-foreground leading-relaxed">
-                                        How would you say your mental focus is?
-					</p>
-					<p class="text-lg text-muted-foreground leading-relaxed">
-                                        Oh, it's focused.
-                                        Look, I have trouble even mentioning,
-                                        even saying to myself in my own head the number of years.
-                                        I no more think of myself as being as old as I am than fly.
-                                        I mean, it's just not...
-                                        I haven't observed anything in terms of...
-                                        There's not things I don't do now that I did before,
-                                        whether it's physical or mental or anything else.
-					</p>
-					<div class="flex flex-wrap gap-3 pt-2">
-						<a
-							href="/tools/font-cycle"
-							class="inline-flex items-center rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-						>
-							Open font cycle
-						</a>
-						<a
-							href="/tools/horizontal-to-vertical"
-							class="inline-flex items-center rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-						>
-							Open horizontal to vertical
-						</a>
-						<a
-							href="/tools/transcribe-reels"
-							class="inline-flex items-center rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-						>
-							Open transcribe reels
-						</a>
-					</div>
-				</div>
-			</div>
-		</main>
-	</body>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content="Small tools for everyday content. Your files stay on your device." />
+    <link rel="icon" href="/apple-touch-icon.png" />
+    <title>Oh it's focused</title>
+  </head>
+  <body class="min-h-dvh antialiased">
+    <main class="mx-auto flex min-h-svh max-w-xl flex-col justify-center px-6 py-12">
+      <h1 class="text-lg font-medium">Oh it's focused.</h1>
+      <p class="mt-2 text-sm text-muted-foreground">Small tools for everyday content.</p>
+      <nav aria-label="Creator tools" class="my-8 divide-y divide-border">
+        {tools.map(tool => <a href={`/tools/${tool.href}`} class="group flex items-center justify-between gap-4 py-5">
+          <div><h2 class="text-sm font-medium group-hover:underline underline-offset-4">{tool.name}</h2><p class="mt-1 text-sm text-muted-foreground">{tool.description}</p></div>
+          <span aria-hidden="true" class="text-muted-foreground">↗</span>
+        </a>)}
+      </nav>
+      <p class="text-xs text-muted-foreground">No accounts. Your files stay on this device.</p>
+    </main>
+  </body>
 </html>

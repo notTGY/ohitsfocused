@@ -1,3 +1,5 @@
+import ToolHelp from '@/components/ToolHelp';
+import { Button } from '@/components/ui/button';
 import {
   useEffect,
   useId,
@@ -5,17 +7,13 @@ import {
   useState,
   type ChangeEvent,
   type DragEvent,
-  type ReactNode,
 } from 'react';
 import {
   Check,
-  Clock3,
   Download,
   ImagePlus,
   Pause,
   Play,
-  RotateCcw,
-  Sparkles,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -23,7 +21,7 @@ import { cn } from '@/lib/utils';
 const VIDEO_DURATION_SECONDS = 60;
 const EXPORT_WIDTH = 720;
 const EXPORT_HEIGHT = 1280;
-const DEFAULT_TEXT = 'Your words stay still. The voice keeps changing.';
+const DEFAULT_TEXT = 'Same words. Different mood.';
 
 const FONT_OPTIONS = [
   {
@@ -223,38 +221,6 @@ function clampInterval(value: number) {
   return Math.min(2, Math.max(0.1, Math.round(value * 10) / 10));
 }
 
-interface ActionButtonProps {
-  active?: boolean;
-  children: ReactNode;
-  disabled?: boolean;
-  label: string;
-  onClick?: () => void;
-}
-
-function ActionButton({ active, children, disabled, label, onClick }: ActionButtonProps) {
-  return (
-    <div className="group relative">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={label}
-        className={cn(
-          'inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground transition-colors',
-          'hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-          disabled && 'cursor-not-allowed opacity-40 hover:bg-background hover:text-foreground',
-          active && 'border-foreground bg-foreground text-background hover:bg-foreground hover:text-background',
-        )}
-      >
-        {children}
-      </button>
-      <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-full border border-border bg-popover px-3 py-1 text-xs text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 export default function FontCycleCreator() {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -262,7 +228,6 @@ export default function FontCycleCreator() {
   const imageObjectUrlRef = useRef<string | null>(null);
   const videoObjectUrlRef = useRef<string | null>(null);
   const [imageUrl, setImageUrl] = useState('');
-  const [imageName, setImageName] = useState('');
   const [text, setText] = useState(DEFAULT_TEXT);
   const [selectedFontIds, setSelectedFontIds] = useState<string[]>(['inter', 'space-grotesk', 'playfair']);
   const [changeIntervalSeconds, setChangeIntervalSeconds] = useState(0.8);
@@ -272,6 +237,7 @@ export default function FontCycleCreator() {
   const [exportedVideoUrl, setExportedVideoUrl] = useState('');
   const [exportProgressSeconds, setExportProgressSeconds] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const selectedFontsKey = selectedFontIds.join('|');
@@ -304,7 +270,7 @@ export default function FontCycleCreator() {
   }
 
   function applyFile(file: File | null | undefined) {
-    if (!file) {
+    if (!file || isExporting) {
       return;
     }
 
@@ -314,7 +280,6 @@ export default function FontCycleCreator() {
     }
 
     setErrorMessage('');
-    setImageName(file.name);
     clearRenderedVideo();
     setImageObjectUrl(URL.createObjectURL(file));
   }
@@ -351,11 +316,11 @@ export default function FontCycleCreator() {
 
   function resetCreator() {
     setErrorMessage('');
-    setImageName('');
+    setShowSettings(false);
     setText(DEFAULT_TEXT);
     setSelectedFontIds(['inter', 'space-grotesk', 'playfair']);
     setChangeIntervalSeconds(0.8);
-    setIsPreviewPlaying(true);
+    setIsPreviewPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     setCurrentFontIndex(0);
     setExportProgressSeconds(0);
     setImageObjectUrl(null);
@@ -500,6 +465,14 @@ export default function FontCycleCreator() {
   }, []);
 
   useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => { if (preference.matches) setIsPreviewPlaying(false); };
+    update();
+    preference.addEventListener('change', update);
+    return () => preference.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
     setCurrentFontIndex(0);
   }, [selectedFontsKey, changeIntervalSeconds]);
 
@@ -526,273 +499,59 @@ export default function FontCycleCreator() {
     }
   }, [changeIntervalSeconds, imageUrl, selectedFontsKey, text]);
 
+  if (!imageUrl) return (
+    <section className="mx-auto flex min-h-[65svh] max-w-lg flex-col justify-center">
+      <label htmlFor={fileInputId} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}
+        className={cn('flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-dashed px-6 py-10 text-center focus-within:ring-2 focus-within:ring-ring hover:bg-muted/30', isDragActive && 'bg-muted ring-2 ring-ring')}>
+        <input id={fileInputId} ref={fileInputRef} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
+        <ImagePlus className="size-6 text-muted-foreground" />
+        <span className="font-medium">Choose an image</span>
+        <span className="max-w-xs text-sm leading-6 text-muted-foreground">Add your words. Turn them into a video with changing fonts.</span>
+        <span className="text-xs text-muted-foreground">or drop it here</span>
+      </label>
+      {errorMessage && <p role="alert" className="mt-4 text-sm text-destructive">{errorMessage}</p>}
+    </section>
+  );
+
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] xl:items-start">
-      <div className="space-y-4 xl:sticky xl:top-8">
-        <div className="flex items-center justify-between rounded-3xl border border-border bg-card px-4 py-3 shadow-sm">
-          <div>
-            <p className="text-sm font-medium text-card-foreground">Preview</p>
-            <p className="text-xs text-muted-foreground">Edit the headline directly on the image.</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ActionButton label="Upload image" onClick={() => fileInputRef.current?.click()}>
-              <ImagePlus className="h-4 w-4" />
-            </ActionButton>
-            <ActionButton
-              active={isPreviewPlaying}
-              label={isPreviewPlaying ? 'Pause preview' : 'Play preview'}
-              onClick={() => setIsPreviewPlaying((isPlaying) => !isPlaying)}
-            >
-              {isPreviewPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </ActionButton>
-            <ActionButton disabled={!canExport} label="Generate font cycle" onClick={handleExport}>
-              <Sparkles className="h-4 w-4" />
-            </ActionButton>
-            <ActionButton label="Reset creator" onClick={resetCreator}>
-              <RotateCcw className="h-4 w-4" />
-            </ActionButton>
-          </div>
+    <div className="mx-auto max-w-2xl space-y-4">
+      <input id={fileInputId} ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isExporting} />
+      <div role="toolbar" aria-label="Font cycle controls" className="flex flex-wrap items-center gap-1">
+        <Button variant="ghost" disabled={isExporting} onClick={() => fileInputRef.current?.click()}>Replace</Button>
+        <Button variant="ghost" disabled={isExporting} aria-expanded={showSettings} aria-controls="font-settings" onClick={() => setShowSettings(!showSettings)}>Fonts & timing</Button>
+        {!exportedVideoUrl && <Button variant="ghost" disabled={isExporting} aria-label={isPreviewPlaying ? 'Pause preview' : 'Play preview'} onClick={() => setIsPreviewPlaying(!isPreviewPlaying)}>{isPreviewPlaying ? <Pause /> : <Play />}</Button>}
+        <div className="ml-auto flex items-center gap-1">
+          <ToolHelp><p>Type directly on the image. The selected fonts change automatically.</p><p className="mt-2">Export makes a 60-second vertical WebM. Keep this tab visible for the minute it takes. Your image stays on this device.</p><Button variant="ghost" className="mt-2 w-full" disabled={isExporting} onClick={resetCreator}>Start over</Button></ToolHelp>
+          {exportedVideoUrl ? <Button asChild><a href={exportedVideoUrl} download="font-cycle.webm"><Download />Save video</a></Button> : <Button disabled={!canExport} onClick={handleExport}>{isExporting ? `${exportProgressSeconds}s / 60s` : 'Export'}</Button>}
         </div>
-
-        <div className="rounded-[2rem] border border-border bg-card p-3 shadow-sm">
-          <div className="relative mx-auto aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-[2rem] border border-border bg-muted">
-            {imageUrl ? (
-              <img alt="Uploaded background preview" className="h-full w-full object-cover" src={imageUrl} />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(24,24,27,0.08),_transparent_55%),linear-gradient(180deg,_rgba(24,24,27,0.08),_rgba(24,24,27,0.02))] px-8 text-center text-sm text-muted-foreground">
-                Drop an image here to build the font cycle.
-              </div>
-            )}
-
-            <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-transparent" />
-
-            <textarea
-              aria-label="Overlay text"
-              className="absolute left-1/2 top-[12%] h-[24%] w-[82%] -translate-x-1/2 resize-none border-none bg-transparent px-2 py-3 text-center text-2xl font-bold leading-tight text-white outline-none placeholder:text-white/60 md:text-[2rem]"
-              maxLength={220}
-              onChange={(event) => setText(event.target.value)}
-              placeholder="Type directly on the image"
-              spellCheck={false}
-              style={{
-                fontFamily: previewFont.cssFamily,
-                textShadow: '0 10px 28px rgba(0, 0, 0, 0.35)',
-              }}
-              value={text}
-            />
-
-            <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
-              <span>{previewFont.label}</span>
-            </div>
-
-            <div className="absolute bottom-4 right-4 rounded-full border border-white/20 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
-              {text.length}/220
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 rounded-3xl border border-border bg-card p-4 text-center shadow-sm">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Length</p>
-            <p className="mt-2 text-lg font-semibold text-card-foreground">60s</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Switch</p>
-            <p className="mt-2 text-lg font-semibold text-card-foreground">{changeIntervalSeconds.toFixed(1)}s</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Fonts</p>
-            <p className="mt-2 text-lg font-semibold text-card-foreground">{activeFonts.length}</p>
-          </div>
-        </div>
-
-        {exportedVideoUrl ? (
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-card-foreground">Rendered video</p>
-                <p className="text-xs text-muted-foreground">Ready to preview or download.</p>
-              </div>
-
-              <a
-                className="group relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                download="font-cycle.webm"
-                href={exportedVideoUrl}
-              >
-                <Download className="h-4 w-4" />
-                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 rounded-full border border-border bg-popover px-3 py-1 text-xs text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                  Download video
-                </span>
-              </a>
-            </div>
-
-            <video className="aspect-[9/16] w-full rounded-[1.5rem] border border-border bg-black object-cover" controls loop src={exportedVideoUrl} />
-          </div>
-        ) : null}
       </div>
-
-      <div className="space-y-6">
-        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <ImagePlus className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground">Background image</h2>
-              <p className="text-sm text-muted-foreground">Drag, drop, or click to upload the still image.</p>
-            </div>
-          </div>
-
-          <label
-            htmlFor={fileInputId}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={cn(
-              'flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed px-6 py-8 text-center transition-colors',
-              isDragActive
-                ? 'border-foreground bg-accent text-accent-foreground'
-                : 'border-border bg-muted/40 hover:bg-muted',
-            )}
-          >
-            <input
-              accept="image/*"
-              className="sr-only"
-              id={fileInputId}
-              onChange={handleFileChange}
-              ref={fileInputRef}
-              type="file"
-            />
-            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-background">
-              <ImagePlus className="h-5 w-5" />
-            </div>
-            <p className="text-base font-medium text-card-foreground">
-              {imageName || 'Drop a portrait image or tap to browse'}
-            </p>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              A tall image works best because the export renders in a 9:16 vertical format.
-            </p>
-          </label>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <Check className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground">Font set</h2>
-              <p className="text-sm text-muted-foreground">Pick the fonts to cycle through during the 60 second render.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            {FONT_OPTIONS.map((font) => {
-              const isSelected = selectedFontIds.includes(font.id);
-
-              return (
-                <button
-                  key={font.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => toggleFont(font.id)}
-                  className={cn(
-                    'flex items-center justify-between rounded-[1.5rem] border px-4 py-4 text-left transition-colors',
-                    isSelected
-                      ? 'border-foreground bg-foreground text-background'
-                      : 'border-border bg-background hover:bg-accent hover:text-accent-foreground',
-                  )}
-                >
-                  <div>
-                    <p className="text-lg font-semibold" style={{ fontFamily: font.cssFamily }}>
-                      {font.label}
-                    </p>
-                    <p className={cn('text-sm', isSelected ? 'text-background/70' : 'text-muted-foreground')}>
-                      Included in the font rotation.
-                    </p>
-                  </div>
-                  <span
-                    className={cn(
-                      'inline-flex h-8 w-8 items-center justify-center rounded-full border',
-                      isSelected ? 'border-background/20 bg-background/10' : 'border-border bg-muted',
-                    )}
-                  >
-                    <Check className="h-4 w-4" />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <p className="mt-3 text-xs text-muted-foreground">
-            The font cycle follows the order you choose the fonts.
-          </p>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <Clock3 className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground">Timing</h2>
-              <p className="text-sm text-muted-foreground">Set how often the font changes while the text stays in place.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px] md:items-center">
-            <input
-              className="w-full accent-foreground"
-              max={2}
-              min={0.1}
-              onChange={(event) => setChangeIntervalSeconds(clampInterval(Number(event.target.value)))}
-              step={0.1}
-              type="range"
-              value={changeIntervalSeconds}
-            />
-            <div className="rounded-[1.25rem] border border-input bg-background px-4 py-3 text-center">
-              <span className="text-2xl font-semibold text-foreground">{changeIntervalSeconds.toFixed(1)}</span>
-              <span className="ml-1 text-sm text-muted-foreground">sec</span>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
-            <p>Preview switches every {changeIntervalSeconds.toFixed(1)} seconds.</p>
-            <p>Keep the tab visible while exporting. Rendering runs in real time for the full minute.</p>
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-card-foreground">Export</h2>
-              <p className="text-sm text-muted-foreground">Creates a 60 second WebM video directly in the browser.</p>
-            </div>
-
-            <button
-              type="button"
-              className={cn(
-                'inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition-colors',
-                canExport
-                  ? 'bg-foreground text-background hover:bg-foreground/90'
-                  : 'cursor-not-allowed bg-muted text-muted-foreground',
-              )}
-              disabled={!canExport}
-              onClick={handleExport}
-            >
-              {isExporting ? `Rendering ${exportProgressSeconds}s / 60s` : 'Generate font cycle'}
-            </button>
-          </div>
-
-          {errorMessage ? <p className="mt-4 text-sm text-destructive">{errorMessage}</p> : null}
-          {!errorMessage ? (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Upload an image, add your text, choose at least one font, then export.
-            </p>
-          ) : null}
-        </section>
+      {showSettings && <fieldset id="font-settings" disabled={isExporting} className="space-y-4 border-y border-border py-4">
+        <legend className="sr-only">Fonts and timing</legend>
+        <div className="flex flex-wrap gap-2">{FONT_OPTIONS.map(font => {
+          const selected = selectedFontIds.includes(font.id);
+          return <Button key={font.id} variant={selected ? 'secondary' : 'ghost'} aria-pressed={selected} onClick={() => toggleFont(font.id)} style={{ fontFamily: font.cssFamily }}>
+            {selected && <Check className="size-3" />}{font.label}
+          </Button>;
+        })}</div>
+        <label className="flex flex-wrap items-center gap-3 text-sm">Change every
+          <input aria-label="Seconds between font changes" className="min-w-24 flex-1 accent-foreground" type="range" min={0.1} max={2} step={0.1} value={changeIntervalSeconds} onChange={event => setChangeIntervalSeconds(clampInterval(Number(event.target.value)))} />
+          <span className="w-10 tabular-nums">{changeIntervalSeconds.toFixed(1)}s</span>
+        </label>
+        {!activeFonts.length && <p role="alert" className="text-sm text-muted-foreground">Choose at least one font.</p>}
+      </fieldset>}
+      <div className="mx-auto w-full max-w-[min(100%,360px,50svh)]">
+        {exportedVideoUrl ? <>
+          <video aria-label="Exported font cycle" className="aspect-[9/16] w-full rounded-lg bg-black" controls playsInline loop src={exportedVideoUrl} />
+          <Button variant="ghost" className="mt-2 w-full" onClick={clearRenderedVideo}>Back to editing</Button>
+        </> : <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-muted">
+          <img alt="Your image" className="h-full w-full object-cover" src={imageUrl} />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-transparent" />
+          <textarea aria-label="Your words" disabled={isExporting} className="absolute left-1/2 top-[12%] h-[36%] w-[82%] -translate-x-1/2 resize-none border-none bg-transparent px-2 py-3 text-center text-2xl font-bold leading-tight text-white placeholder:text-white/60"
+            maxLength={220} onChange={event => setText(event.target.value)} placeholder="Your words here" spellCheck={false} style={{ fontFamily: previewFont.cssFamily, textShadow: '0 2px 12px rgb(0 0 0 / 35%)' }} value={text} />
+        </div>}
       </div>
-
+      {isExporting && <p role="status" className="text-center text-xs text-muted-foreground">Exporting. Keep this tab visible.</p>}
+      {errorMessage && <p role="alert" className="text-sm text-destructive">{errorMessage}</p>}
       <canvas aria-hidden="true" className="hidden" ref={exportCanvasRef} />
     </div>
   );

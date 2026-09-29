@@ -1,3 +1,5 @@
+import ToolHelp from '@/components/ToolHelp';
+import { Button } from '@/components/ui/button';
 import {
   useEffect,
   useId,
@@ -6,18 +8,12 @@ import {
   type ChangeEvent,
   type DragEvent,
   type PointerEvent as ReactPointerEvent,
-  type ReactNode,
 } from 'react';
 import {
   Download,
-  Film,
-  Maximize2,
   Pause,
   Play,
-  RotateCcw,
-  Scissors,
   Upload,
-  WandSparkles,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -212,37 +208,6 @@ function waitForVideo(video: HTMLVideoElement) {
   });
 }
 
-interface ActionButtonProps {
-  active?: boolean;
-  children: ReactNode;
-  disabled?: boolean;
-  label: string;
-  onClick: () => void;
-}
-
-function ActionButton({ active, children, disabled, label, onClick }: ActionButtonProps) {
-  return (
-    <div className="group relative">
-      <button
-        type="button"
-        aria-label={label}
-        className={cn(
-          'inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground transition-colors',
-          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40',
-          active && 'border-foreground bg-foreground text-background hover:bg-foreground/90',
-        )}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {children}
-      </button>
-      <span className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-popover px-3 py-1 text-xs text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 export default function HorizontalToVertical() {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -265,6 +230,7 @@ export default function HorizontalToVertical() {
   const [renderedUrl, setRenderedUrl] = useState('');
   const [renderedMimeType, setRenderedMimeType] = useState('video/webm');
   const [isExporting, setIsExporting] = useState(false);
+  const [showFrames, setShowFrames] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -295,7 +261,7 @@ export default function HorizontalToVertical() {
   }
 
   function applyFile(file: File | null | undefined) {
-    if (!file) {
+    if (!file || isExporting) {
       return;
     }
 
@@ -313,6 +279,7 @@ export default function HorizontalToVertical() {
     clearRenderedVideo();
     setVideoUrl(nextUrl);
     setVideoName(file.name);
+    setShowFrames(false);
     setMetadata(null);
     setCrops([null, null]);
     setDrawIndex(0);
@@ -354,6 +321,7 @@ export default function HorizontalToVertical() {
     clearRenderedVideo();
     setVideoUrl('');
     setVideoName('');
+    setShowFrames(false);
     setMetadata(null);
     setCrops([null, null]);
     setDrawIndex(null);
@@ -362,9 +330,13 @@ export default function HorizontalToVertical() {
     setErrorMessage('');
   }
 
+  function defaultCrops(aspect = videoAspect): CropPair {
+    return [0.3, 0.7].map(x => fitCropToRatio({ x: x - 0.15, y: 0.2, width: 0.3, height: 0.6 }, TOTAL_CROP_RATIO / 2, aspect)) as CropPair;
+  }
+
   function resetCrops() {
-    setNextCrops([null, null]);
-    setDrawIndex(0);
+    setNextCrops(defaultCrops());
+    setDrawIndex(null);
     setSelectedIndex(0);
     setErrorMessage('');
   }
@@ -780,14 +752,14 @@ export default function HorizontalToVertical() {
 
   if (!videoUrl) {
     return (
-      <section className="mx-auto max-w-4xl rounded-[2rem] border border-border bg-card p-4 shadow-sm md:p-8">
+      <section className="mx-auto flex min-h-[65svh] max-w-lg flex-col justify-center">
         <label
           htmlFor={fileInputId}
           className={cn(
-            'flex min-h-[420px] cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed px-6 py-12 text-center transition-colors',
+            'flex min-h-72 cursor-pointer focus-within:ring-2 focus-within:ring-ring flex-col items-center justify-center rounded-lg border border-dashed px-6 py-12 text-center transition-colors',
             isDragActive
               ? 'border-foreground bg-accent text-accent-foreground'
-              : 'border-border bg-muted/30 hover:bg-muted/60',
+              : 'border-border hover:bg-muted/30',
           )}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
@@ -801,16 +773,10 @@ export default function HorizontalToVertical() {
             accept="video/*"
             onChange={handleFileChange}
           />
-          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
-            <Upload className="h-7 w-7" />
-          </div>
-          <h2 className="text-2xl font-semibold text-card-foreground">Drop a horizontal video here</h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-            Your video stays in the browser. Draw two crops for the speaker and the action, then export a reel-ready 9:16 edit.
-          </p>
-          <span className="mt-7 inline-flex rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background">
-            Choose video
-          </span>
+          <Upload className="mb-4 size-6 text-muted-foreground" />
+          <span className="font-medium">Choose a video</span>
+          <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">Pick two frames from a wide video. Stack them into a vertical edit.</p>
+          <span className="mt-4 text-xs text-muted-foreground">or drop it here</span>
           {errorMessage ? <p className="mt-5 text-sm text-destructive">{errorMessage}</p> : null}
         </label>
       </section>
@@ -818,34 +784,30 @@ export default function HorizontalToVertical() {
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(300px,380px)] xl:items-start">
-      <div className="space-y-6">
-        <section className="rounded-[2rem] border border-border bg-card p-4 shadow-sm md:p-6">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">Source video</p>
-              <h2 className="mt-1 max-w-lg truncate text-lg font-semibold text-card-foreground">{videoName}</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <ActionButton disabled={isExporting} label="Replace video" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-4 w-4" />
-              </ActionButton>
-              <ActionButton disabled={isExporting} label="Start over" onClick={resetTool}>
-                <RotateCcw className="h-4 w-4" />
-              </ActionButton>
-            </div>
-            <input
-              ref={fileInputRef}
-              id={fileInputId}
-              className="sr-only"
-              type="file"
-              accept="video/*"
-              onChange={handleFileChange}
-            />
-          </div>
-
+    <div className="space-y-4">
+      <input ref={fileInputRef} id={fileInputId} className="hidden" type="file" accept="video/*" onChange={handleFileChange} disabled={isExporting} />
+      <div role="toolbar" aria-label="Video controls" className="flex flex-wrap items-center gap-1">
+        <Button variant="ghost" disabled={isExporting} onClick={() => fileInputRef.current?.click()}>Replace</Button>
+        <Button variant="ghost" disabled={isExporting} aria-expanded={showFrames} aria-controls="frame-options" onClick={() => setShowFrames(!showFrames)}>Frames</Button>
+        <div className="ml-auto flex items-center gap-1">
+          <ToolHelp><p>Move the two boxes to frame your subjects. Drag a corner to resize. The vertical preview follows along.</p><p className="mt-2">Keyboard: Tab to a frame, arrow keys to move, + / − to resize. Shift moves faster. Reset frames restores both boxes.</p><p className="mt-2">720 × 1280, with audio. Export takes as long as the video; keep this tab visible. Your video stays on this device.</p><Button variant="ghost" className="mt-2 w-full" disabled={isExporting} onClick={resetTool}>Start over</Button></ToolHelp>
+          {renderedUrl ? <Button asChild><a href={renderedUrl} download={downloadName}><Download />Save video</a></Button> : <Button disabled={!canExport} onClick={handleExport}>{isExporting ? `Exporting ${formatTime(exportProgress)}` : 'Export'}</Button>}
+        </div>
+      </div>
+      {showFrames && <div id="frame-options" className="flex flex-wrap gap-2 border-y border-border py-3">
+        <Button variant="ghost" disabled={isExporting} onClick={resetCrops}>Reset frames</Button>
+        {crops.map((crop, index) => <Button key={index} variant="ghost" disabled={isExporting || (index === 1 && !crops[0])} onClick={() => {
+          const next = cloneCrops(crops);
+          next[index] = null;
+          setNextCrops(next);
+          setSelectedIndex(index as 0 | 1);
+          setDrawIndex(index as 0 | 1);
+        }}>Redraw {index === 0 ? 'top' : 'bottom'}</Button>)}
+      </div>}
+      <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
+        <section aria-label="Source video" className="min-w-0">
           <div
-            className="relative overflow-hidden rounded-[1.5rem] border border-border bg-black shadow-inner"
+            className="relative overflow-hidden rounded-lg border border-border bg-black shadow-inner"
             style={{ aspectRatio: metadata ? `${metadata.width} / ${metadata.height}` : '16 / 9' }}
           >
             <video
@@ -857,6 +819,8 @@ export default function HorizontalToVertical() {
               onEnded={() => setIsPlaying(false)}
               onLoadedMetadata={(event) => {
                 const video = event.currentTarget;
+                setNextCrops(defaultCrops(video.videoWidth / video.videoHeight));
+                setDrawIndex(null);
                 setMetadata({
                   duration: video.duration,
                   height: video.videoHeight,
@@ -894,7 +858,25 @@ export default function HorizontalToVertical() {
                     key={cropIndex}
                     role="button"
                     tabIndex={0}
-                    aria-label={`Move frame ${cropIndex + 1}`}
+                    aria-label={`Frame ${cropIndex + 1}. Arrow keys move; plus and minus resize.`}
+                    onKeyDown={(event) => {
+                      if (isExporting || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-'].includes(event.key)) return;
+                      event.preventDefault();
+                      const next = cloneCrops(crops), step = event.shiftKey ? 0.05 : 0.01;
+                      if (event.key.startsWith('Arrow')) {
+                        next[cropIndex] = { ...crop,
+                          x: clamp(crop.x + (event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0), 0, 1 - crop.width),
+                          y: clamp(crop.y + (event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0), 0, 1 - crop.height) };
+                      } else {
+                        const scale = event.key === '-' ? 0.95 : 1.05;
+                        const ratio = crop.height / crop.width;
+                        const width = clamp(crop.width * scale, MIN_CROP_SIZE, Math.min(1, 1 / ratio));
+                        const height = width * ratio;
+                        next[cropIndex] = { x: clamp(crop.x + (crop.width - width) / 2, 0, 1 - width), y: clamp(crop.y + (crop.height - height) / 2, 0, 1 - height), width, height };
+                      }
+                      setSelectedIndex(cropIndex);
+                      setNextCrops(next);
+                    }}
                     className={cn(
                       'absolute border-2 shadow-[0_0_0_9999px_rgba(2,6,23,0.16)]',
                       style.border,
@@ -917,10 +899,10 @@ export default function HorizontalToVertical() {
                       <span
                         key={corner}
                         className={cn(
-                          'absolute h-4 w-4 rounded-full border-2 border-slate-950 shadow-sm',
+                          'absolute h-6 w-6 rounded-full border-2 border-slate-950',
                           style.handle,
-                          corner.includes('n') ? '-top-2' : '-bottom-2',
-                          corner.includes('w') ? '-left-2' : '-right-2',
+                          corner.includes('n') ? '-top-3' : '-bottom-3',
+                          corner.includes('w') ? '-left-3' : '-right-3',
                           corner === 'nw' || corner === 'se' ? 'cursor-nwse-resize' : 'cursor-nesw-resize',
                         )}
                         onPointerDown={(event) => beginCropInteraction(event, cropIndex, 'resize', corner)}
@@ -941,14 +923,14 @@ export default function HorizontalToVertical() {
           </div>
 
           <div className="mt-4 flex items-center gap-3">
-            <button
+            <Button variant="outline"
               type="button"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-background hover:bg-accent"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-background hover:bg-accent"
               aria-label={isPlaying ? 'Pause source video' : 'Play source video'}
               onClick={togglePlayback}
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
-            </button>
+            </Button>
             <span className="w-11 text-right text-xs tabular-nums text-muted-foreground">{formatTime(currentTime)}</span>
             <input
               aria-label="Video position"
@@ -963,158 +945,19 @@ export default function HorizontalToVertical() {
             <span className="w-11 text-xs tabular-nums text-muted-foreground">{formatTime(metadata?.duration || 0)}</span>
           </div>
         </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-5 shadow-sm md:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-xl">
-              <div className="flex items-center gap-3">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                  <Scissors className="h-4 w-4" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-card-foreground">Crop frames</h2>
-                  <p className="text-sm text-muted-foreground">Move a box or drag its corner to reframe.</p>
-                </div>
-              </div>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                Resizing one frame automatically reshapes the other. Their aspect ratios always add up to 16:9, so the vertical result has no gaps or stretched pixels.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
-              disabled={isExporting}
-              onClick={resetCrops}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Redraw both
-            </button>
+        <section aria-label="Vertical result" className="mx-auto w-full max-w-[min(280px,45svh)]">
+          <div className="relative aspect-[9/16] overflow-hidden rounded-lg bg-black">
+            <canvas ref={previewCanvasRef} className={cn('h-full w-full', renderedUrl && 'hidden')} height={EXPORT_HEIGHT} width={EXPORT_WIDTH} />
+            {renderedUrl ? <video aria-label="Exported vertical video" className="h-full w-full" controls playsInline src={renderedUrl} /> : !hasBothCrops && <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground">Draw both frames, or reset them.</p>}
           </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {crops.map((crop, index) => {
-              const cropIndex = index as 0 | 1;
-              const ratio = crop ? cropRatio(crop, videoAspect) : null;
-              const style = FRAME_STYLES[cropIndex];
-
-              return (
-                <button
-                  key={cropIndex}
-                  type="button"
-                  disabled={isExporting || (cropIndex === 1 && !crops[0])}
-                  className={cn(
-                    'flex items-center justify-between rounded-[1.25rem] border border-border bg-background p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45',
-                    selectedIndex === cropIndex && crop && 'border-foreground',
-                  )}
-                  onClick={() => {
-                    const nextCrops = cloneCrops(crops);
-                    nextCrops[cropIndex] = null;
-                    setNextCrops(nextCrops);
-                    setSelectedIndex(cropIndex);
-                    setDrawIndex(cropIndex);
-                  }}
-                >
-                  <span>
-                    <span className="block text-sm font-semibold text-card-foreground">Frame {cropIndex + 1} · {cropIndex === 0 ? 'Top' : 'Bottom'}</span>
-                    <span className="mt-1 block text-xs text-muted-foreground">
-                      {ratio ? `${ratio.toFixed(3)} height / width` : cropIndex === drawIndex ? 'Draw on the video' : 'Not drawn yet'}
-                    </span>
-                  </span>
-                  <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', style.button)}>
-                    {crop ? 'Redraw' : 'Draw'}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          {renderedUrl && <Button variant="ghost" className="mt-2 w-full" onClick={clearRenderedVideo}>Back to preview</Button>}
         </section>
       </div>
-
-      <aside className="space-y-5 xl:sticky xl:top-8">
-        <section className="rounded-[2rem] border border-border bg-card p-4 shadow-sm">
-          <div className="mb-4 flex items-center justify-between gap-4 px-1">
-            <div>
-              <p className="text-sm font-semibold text-card-foreground">Vertical preview</p>
-              <p className="text-xs text-muted-foreground">720 × 1280 · 9:16</p>
-            </div>
-            <Maximize2 className="h-4 w-4 text-muted-foreground" />
-          </div>
-
-          <div className="relative mx-auto aspect-[9/16] w-full max-w-[320px] overflow-hidden rounded-[1.5rem] border border-border bg-slate-950">
-            <canvas ref={previewCanvasRef} className="h-full w-full" height={EXPORT_HEIGHT} width={EXPORT_WIDTH} />
-            {!hasBothCrops ? (
-              <div className="absolute inset-0 flex items-center justify-center px-8 text-center text-sm leading-6 text-slate-400">
-                Draw both frames to see the final composition.
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card p-5 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-              <Film className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-card-foreground">Export reel</h2>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">Keeps the source audio and renders locally in real time.</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className={cn(
-              'mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium transition-colors',
-              canExport
-                ? 'bg-foreground text-background hover:bg-foreground/90'
-                : 'cursor-not-allowed bg-muted text-muted-foreground',
-            )}
-            disabled={!canExport}
-            onClick={handleExport}
-          >
-            <WandSparkles className="h-4 w-4" />
-            {isExporting
-              ? `Rendering ${formatTime(exportProgress)} / ${formatTime(metadata?.duration || 0)}`
-              : 'Generate vertical video'}
-          </button>
-
-          {isExporting && metadata ? (
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-foreground transition-[width]"
-                style={{ width: `${clamp((exportProgress / metadata.duration) * 100, 0, 100)}%` }}
-              />
-            </div>
-          ) : null}
-
-          {errorMessage ? <p className="mt-4 text-sm text-destructive">{errorMessage}</p> : null}
-          {!errorMessage ? (
-            <p className="mt-4 text-xs leading-5 text-muted-foreground">Keep this tab visible until the export finishes.</p>
-          ) : null}
-        </section>
-
-        {renderedUrl ? (
-          <section className="rounded-[2rem] border border-border bg-card p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-4 px-1">
-              <div>
-                <p className="text-sm font-semibold text-card-foreground">Your reel is ready</p>
-                <p className="text-xs text-muted-foreground">Preview or download the result.</p>
-              </div>
-              <a
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background transition-colors hover:bg-foreground/90"
-                download={downloadName}
-                href={renderedUrl}
-                aria-label="Download vertical video"
-              >
-                <Download className="h-4 w-4" />
-              </a>
-            </div>
-            <video className="aspect-[9/16] w-full rounded-[1.5rem] bg-black" controls playsInline src={renderedUrl} />
-          </section>
-        ) : null}
-      </aside>
-
+      {isExporting && <div role="status" className="space-y-2">
+        <progress aria-label="Export progress" className="h-1 w-full accent-current" max={metadata?.duration || 1} value={exportProgress} />
+        <p className="text-xs text-muted-foreground">Exporting. Keep this tab visible.</p>
+      </div>}
+      {errorMessage && <p role="alert" className="text-sm text-destructive">{errorMessage}</p>}
       <canvas ref={exportCanvasRef} className="hidden" aria-hidden="true" />
     </div>
   );
