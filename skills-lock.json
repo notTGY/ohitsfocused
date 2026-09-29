@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "jakeloud": {
+      "source": "jakeloud/skill",
+      "sourceType": "github",
+      "skillPath": "skills/jakeloud/SKILL.md",
+      "computedHash": "e24705af2205b45b20b2c4d8513ec829ace37d89b31894afd07f69f93c8d50a3"
+    }
+  }
+}

@@ -1,6 +1,17 @@
 ---
 import '@/styles/global.css';
-const { title, description } = Astro.props;
+const { title, description, seoTitle = `${title} — free browser tool` } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: seoTitle,
+  url: canonical.href,
+  applicationCategory: 'MultimediaApplication',
+  operatingSystem: 'Any',
+  isAccessibleForFree: true,
+  description,
+};
 ---
 <html lang="en" class="dark">
   <head>
@@ -8,8 +19,19 @@ const { title, description } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="description" content={description} />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Oh it's focused" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={`${seoTitle} · Oh it's focused`} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={`${seoTitle} · Oh it's focused`} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" href="/apple-touch-icon.png" />
-    <title>{title} · Oh it's focused</title>
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <title>{seoTitle} · Oh it's focused</title>
   </head>
   <body class="min-h-dvh antialiased">
     <main class="mx-auto max-w-6xl px-4 py-4 sm:px-6">

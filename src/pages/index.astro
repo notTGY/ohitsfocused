@@ -1,18 +1,38 @@
 ---
 import '@/styles/global.css';
+const canonical = new URL('/', Astro.site);
 const tools = [
-  { href: 'font-cycle', name: 'Font cycle', description: 'An image, your words, changing fonts.' },
-  { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Two frames from a wide video. One vertical edit.' },
-  { href: 'transcribe-reels', name: 'Video to text', description: 'Spoken words, ready to copy.' },
+  { href: 'font-cycle', name: 'Font cycle', description: 'Add your words to an image and cycle through type styles.' },
+  { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Turn a horizontal video into a vertical edit with two frames.' },
+  { href: 'transcribe-reels', name: 'Video to text', description: 'Transcribe speech from a video to text in your browser.' },
 ];
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: "Oh it's focused",
+  url: canonical.href,
+  description: 'Free browser based tools for creating and working with everyday content. Your files stay on your device.',
+  hasPart: tools.map((tool) => ({ '@type': 'WebApplication', name: tool.name, description: tool.description, url: new URL(`/tools/${tool.href}/`, Astro.site).href })),
+};
 ---
 <html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0a0a0a" />
-    <meta name="description" content="Small tools for everyday content. Your files stay on your device." />
+    <meta name="description" content="Free browser based creator tools for images and video. Make a font cycle, turn horizontal video vertical, or transcribe speech. Your files stay on your device." />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Oh it's focused" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content="Oh it's focused — free browser tools for creators" />
+    <meta property="og:description" content="Make a font cycle, turn horizontal video vertical, or transcribe speech. Free tools that keep your files on your device." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Oh it's focused — free browser tools for creators" />
+    <meta name="twitter:description" content="Make a font cycle, turn horizontal video vertical, or transcribe speech. Your files stay on your device." />
     <link rel="icon" href="/apple-touch-icon.png" />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     <title>Oh it's focused</title>
   </head>
   <body class="min-h-dvh antialiased">
@@ -20,7 +40,7 @@ const tools = [
       <h1 class="text-lg font-medium">Oh it's focused.</h1>
       <p class="mt-2 text-sm text-muted-foreground">Small tools for everyday content.</p>
       <nav aria-label="Creator tools" class="my-8 divide-y divide-border">
-        {tools.map(tool => <a href={`/tools/${tool.href}`} class="group flex items-center justify-between gap-4 py-5">
+        {tools.map(tool => <a href={`/tools/${tool.href}/`} class="group flex items-center justify-between gap-4 py-5">
           <div><h2 class="text-sm font-medium group-hover:underline underline-offset-4">{tool.name}</h2><p class="mt-1 text-sm text-muted-foreground">{tool.description}</p></div>
           <span aria-hidden="true" class="text-muted-foreground">↗</span>
         </a>)}
