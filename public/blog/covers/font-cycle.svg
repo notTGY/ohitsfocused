@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" fill="none">
+  <rect width="1200" height="680" rx="16" fill="#F3F0E8"/>
+  <path d="M80 494c83-75 124-155 204-221s136-81 238-91M81 533c106-92 155-176 250-240s133-80 222-89M83 574c120-106 178-195 289-264s135-76 217-82" stroke="#171714" stroke-width="2" opacity=".43"/>
+  <rect x="325" y="56" width="329" height="568" rx="7" fill="#E7E2D7" stroke="#171714" stroke-width="3"/>
+  <path d="M337 68h305v544H337z" stroke="#171714" stroke-width="1.5"/>
+  <path d="M339 71h301v213c-44 19-77 29-148 19-61-9-96-4-153 17V71Z" fill="#D4D0C3"/>
+  <path d="M339 236c57-20 98-25 155-16 59 9 94 1 146-20M339 249c60-20 99-23 155-14 59 9 95 1 146-19" stroke="#171714" stroke-width="2" opacity=".65"/>
+  <path d="M380 82c43 28 68 55 90 91m-58-85c31 20 48 40 69 70m76-52c-27 27-41 46-55 74m82-80c-32 32-46 57-57 89" stroke="#171714" stroke-width="1.7" opacity=".58"/>
+  <path d="M369 385c45-9 83 1 127 15 47 15 84 15 126-1v111c-53 12-92 7-132-8-41-16-77-21-121-10V385Z" fill="#D4D0C3"/>
+  <path d="M369 391c46-9 84 1 126 15 46 15 84 15 127-1m-253 17c45-9 83 1 127 15 46 15 83 15 126-1m-252 17c45-9 83 1 126 15 47 15 84 15 127-1" stroke="#171714" stroke-width="2" opacity=".65"/>
+  <path d="M403 312c12-28 23-37 42-38 18-1 32 15 41 44m-87-3 43-6 45 12m-83 75c7-20 22-30 43-30 21 0 37 12 45 33" stroke="#171714" stroke-width="3" stroke-linecap="round"/>
+  <path d="M419 379c2-14 13-23 28-23 15 0 26 9 28 23v12h-56v-12Z" fill="#F3F0E8" stroke="#171714" stroke-width="2.5"/>
+  <path d="M412 391h72l-8 12h-55l-9-12Zm13 17h46m-42 8h39" stroke="#171714" stroke-width="2" stroke-linecap="round"/>
+  <path d="M724 201h332M724 223h250" stroke="#171714" stroke-width="2" opacity=".38"/>
+  <text x="710" y="329" fill="#171714" font-family="Georgia,serif" font-size="102">Aa</text>
+  <text x="861" y="384" fill="#171714" font-family="Arial,sans-serif" font-size="45">Aa</text>
+  <text x="965" y="443" fill="#171714" font-family="monospace" font-size="34">Aa</text>
+  <path d="M706 483h354m-354 17h297m-297 17h329" stroke="#171714" stroke-width="2" stroke-linecap="round" opacity=".48"/>
+  <path d="M697 287c-16-12-21-24-15-37m400 188c15 7 23 18 20 32" stroke="#171714" stroke-width="2" stroke-linecap="round"/>
+</svg>
