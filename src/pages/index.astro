@@ -1,6 +1,8 @@
 ---
 import '@/styles/global.css';
 const canonical = new URL('/', Astro.site);
+const seoTitle = 'Free browser tools for images and video';
+const description = 'Create text videos, reframe horizontal video, and transcribe speech with free browser tools. Your files stay on your device.';
 const tools = [
   { href: 'font-cycle', name: 'Font cycle', description: 'Add your words to an image and cycle through type styles.' },
   { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Turn a horizontal video into a vertical edit with two frames.' },
@@ -11,8 +13,8 @@ const schema = {
   '@type': 'WebSite',
   name: "Oh it's focused",
   url: canonical.href,
-  description: 'Free browser based tools for creating and working with everyday content. Your files stay on your device.',
-  hasPart: tools.map((tool) => ({ '@type': 'WebApplication', name: tool.name, description: tool.description, url: new URL(`/tools/${tool.href}/`, Astro.site).href })),
+  description,
+  hasPart: tools.map((tool) => ({ '@type': 'WebPage', name: tool.name, description: tool.description, url: new URL(`/tools/${tool.href}/`, Astro.site).href })),
 };
 ---
 <html lang="en" class="dark">
@@ -20,20 +22,20 @@ const schema = {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0a0a0a" />
-    <meta name="description" content="Free browser based creator tools for images and video. Make a font cycle, turn horizontal video vertical, or transcribe speech. Your files stay on your device." />
+    <meta name="description" content={description} />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Oh it's focused" />
     <meta property="og:url" content={canonical} />
-    <meta property="og:title" content="Oh it's focused — free browser tools for creators" />
-    <meta property="og:description" content="Make a font cycle, turn horizontal video vertical, or transcribe speech. Free tools that keep your files on your device." />
+    <meta property="og:title" content={`${seoTitle} · Oh it's focused`} />
+    <meta property="og:description" content={description} />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Oh it's focused — free browser tools for creators" />
-    <meta name="twitter:description" content="Make a font cycle, turn horizontal video vertical, or transcribe speech. Your files stay on your device." />
+    <meta name="twitter:title" content={`${seoTitle} · Oh it's focused`} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" href="/apple-touch-icon.png" />
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-    <title>Oh it's focused</title>
+    <title>{seoTitle} · Oh it's focused</title>
   </head>
   <body class="min-h-dvh antialiased">
     <main class="mx-auto flex min-h-svh max-w-xl flex-col justify-center px-6 py-12">
