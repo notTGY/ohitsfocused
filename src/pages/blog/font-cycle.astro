@@ -1,0 +1,51 @@
+---
+import GuideLayout from '@/layouts/GuideLayout.astro';
+const title = 'How to make a font-cycle video from a single image';
+const description = 'Learn how to add text to an image, compare typefaces, and make a vertical font-cycle video in your browser. Includes a playable example and a sample image.';
+---
+<GuideLayout title={title} description={description}>
+  <article class="mx-auto max-w-3xl space-y-8 pb-12">
+    <header class="space-y-4">
+      <p class="text-xs text-muted-foreground">Blog · Font cycle</p>
+      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">How to make a font-cycle video from a single image</h1>
+      <p class="text-base leading-7 text-muted-foreground">A font-cycle video keeps one image and one line of text on screen while the typeface changes. It is a simple way to compare moods or make a quiet, looping social clip without arranging a full timeline.</p>
+      <a href="/tools/font-cycle/" class="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">Open Font cycle</a>
+    </header>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">1. Choose an image that works in portrait</h2>
+      <p class="text-sm leading-7 text-muted-foreground">The export is a vertical 9:16 video. A portrait photo usually needs less cropping, while a wide photo is enlarged to fill the frame and may lose detail at the sides. Leave some calm space near the top for the words, and avoid placing the main subject where the text will sit.</p>
+      <p class="text-sm leading-7 text-muted-foreground">The sample image below keeps the coffee cup low in the frame and leaves a darker background above it. That gives white text enough contrast without adding a separate text box.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">2. Add a line people can read at a glance</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Choose the image, then type directly over its preview. Keep the message short: the tool wraps longer text and reduces its size to fit, but a few words are easier to read while the font changes. The text field accepts up to 220 characters, though that is a limit rather than a useful target.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Check the text against both light and dark parts of the photo. The tool draws white text with a subtle shadow. If the words still disappear into the image, try another crop or choose a photo with a quieter background.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">3. Compare typefaces and set the rhythm</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Open <em>Fonts &amp; timing</em> to choose which faces take part. Font cycle includes sans-serif, serif, and monospaced options; the default selection already gives you a useful contrast. The interval setting controls how often the face changes, from 0.1 to 2 seconds. A slower change makes each style easier to compare, while a faster one feels more animated.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Preview the sentence with every selected font before exporting. Some typefaces are wider than others, so a phrase that fits on one line in a sans-serif face may wrap in a serif. Short wording keeps the position and size more consistent.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">4. Export and check the saved video</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Export creates a 60-second, 720 × 1280 WebM video with no audio. Keep the tab visible while it records, then play the result once to check that the text stays readable and the chosen fonts have loaded. The image and video rendering stay in your browser; the image is not uploaded.</p>
+      <p class="text-sm leading-7 text-muted-foreground">This format is useful for a simple text-led post or a font comparison. If you need voiceover, music, multiple scenes, or precise timing against an existing clip, a timeline editor will give you more control.</p>
+    </section>
+
+    <section aria-labelledby="font-demo" class="grid gap-6 border-t border-border pt-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
+      <div class="space-y-3">
+        <p class="text-xs text-muted-foreground">Example output · 15 seconds</p>
+        <h2 id="font-demo" class="text-lg font-medium">One sentence, three type styles</h2>
+        <p class="text-sm leading-6 text-muted-foreground">Play the preview, or download the sample image and make a version with your own words.</p>
+        <a href="/demo/coffee-source.webp" download="coffee-example.webp" class="inline-flex min-h-11 items-center text-sm underline underline-offset-4">Download the sample image</a>
+      </div>
+      <video class="mx-auto aspect-[9/16] max-h-[70svh] w-full max-w-[240px] rounded-lg bg-black" controls playsInline preload="metadata" poster="/demo/coffee-source.webp" aria-label="Example font-cycle video with the same line in three type styles">
+        <source src="/demo/font-cycle-preview.webm" type="video/webm" />
+      </video>
+    </section>
+  </article>
+</GuideLayout>

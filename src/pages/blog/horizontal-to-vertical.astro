@@ -1,0 +1,59 @@
+---
+import GuideLayout from '@/layouts/GuideLayout.astro';
+const title = 'How to convert a horizontal video into a vertical video';
+const description = 'Learn how to reframe a landscape video as a vertical edit by selecting two areas and stacking them. See the 9:16 preview and download a sample clip.';
+---
+<GuideLayout title={title} description={description}>
+  <article class="mx-auto max-w-3xl space-y-8 pb-12">
+    <header class="space-y-4">
+      <p class="text-xs text-muted-foreground">Blog · Horizontal to vertical</p>
+      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">How to convert a horizontal video into a vertical video</h1>
+      <p class="text-base leading-7 text-muted-foreground">A standard center crop can cut off people or objects at the edges of a landscape shot. This tool takes two separate regions from each frame and stacks them in a portrait layout, so you can keep two subjects visible in one vertical edit.</p>
+      <a href="/tools/horizontal-to-vertical/" class="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">Open Horizontal to vertical</a>
+    </header>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Start with a wide shot that has two useful areas</h2>
+      <p class="text-sm leading-7 text-muted-foreground">The source can be a landscape video with two people, a speaker and a detail, or two parts of a scene that matter together. The tool creates two portrait-shaped crop windows and places one above the other. Each window shows a different part of the same source frame, rather than duplicating or blurring the background.</p>
+      <p class="text-sm leading-7 text-muted-foreground">The example shows two cyclists spaced across a wide road. The first crop is positioned over the rider on the left; the second is over the rider on the right. If the important subjects sit close together, the two windows can overlap in the source, but that may make the final frames feel repetitive.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Adjust both frames in the preview</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Choose a video and wait for its first frame to load. The tool places two starter frames over the source. Drag a frame to move it, or drag a corner to resize it around the person or detail you want to keep. The vertical preview updates as you work. Reset frames restores the starting positions if you want to try again.</p>
+      <p class="text-sm leading-7 text-muted-foreground">The crop windows are fixed over the source: they do not track a person who walks or rides across the frame. Scrub through the video and check both areas at several points. This works best when subjects stay near their chosen positions, or when the camera movement is small. For fast movement, use an editor with motion tracking or animate the crop over time.</p>
+      <p class="text-sm leading-7 text-muted-foreground">You can also select a frame and use the arrow keys to nudge it. The plus and minus keys resize it, and Shift moves or resizes more quickly. This gives you a precise alternative to dragging on a touch screen or mouse.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Export a portrait edit and review the whole clip</h2>
+      <p class="text-sm leading-7 text-muted-foreground">The result is a 720 × 1280 video with the two crops stacked vertically. The source audio is carried into the export. Depending on browser support, the file is saved as WebM or MP4. Export runs in real time, so a longer source takes longer to record; keep the tab open and visible until it finishes.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Before sharing, watch the saved file from beginning to end. A crop that looks good on the first frame can miss its subject later, and a frame close to the edge may cut off movement. The preview helps you make the initial composition; a final playback catches changes throughout the clip.</p>
+    </section>
+
+    <section aria-labelledby="vertical-demo" class="space-y-6 border-t border-border pt-8">
+      <div class="max-w-2xl space-y-3">
+        <p class="text-xs text-muted-foreground">Example output · 15 seconds</p>
+        <h2 id="vertical-demo" class="text-lg font-medium">See the two crops stacked</h2>
+        <p class="text-sm leading-6 text-muted-foreground">The boxes in the source image show the two crop areas. Play the portrait preview, or download the sample video to frame your own subjects.</p>
+        <a href="/demo/bike-source.mp4" download="bike-example.mp4" class="inline-flex min-h-11 items-center text-sm underline underline-offset-4">Download the sample video</a>
+      </div>
+      <div class="grid gap-6 sm:grid-cols-2 sm:items-center">
+        <figure>
+          <div class="relative overflow-hidden rounded-lg">
+            <img src="/demo/bike-source.webp" alt="Wide sample shot of two friends cycling along a sunlit road" class="block w-full" />
+            <span aria-hidden="true" class="absolute left-[13%] top-[23%] h-[54%] w-[34%] border-2 border-cyan-300 bg-cyan-300/10" />
+            <span aria-hidden="true" class="absolute left-[53%] top-[23%] h-[54%] w-[34%] border-2 border-amber-300 bg-amber-300/10" />
+          </div>
+          <figcaption class="mt-2 text-xs text-muted-foreground">Source frame · two crop areas</figcaption>
+        </figure>
+        <figure class="mx-auto w-full max-w-[240px]">
+          <video class="aspect-[9/16] w-full rounded-lg bg-black" controls playsInline preload="metadata" poster="/demo/bike-source.webp" aria-label="Vertical sample video showing the two cyclists in stacked frames">
+            <source src="/demo/vertical-preview.mp4" type="video/mp4" />
+          </video>
+          <figcaption class="mt-2 text-xs text-muted-foreground">Output preview · left crop above right crop</figcaption>
+        </figure>
+      </div>
+    </section>
+  </article>
+</GuideLayout>

@@ -1,0 +1,43 @@
+---
+import '@/styles/global.css';
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: title,
+  description,
+  url: canonical.href,
+  isPartOf: { '@type': 'WebSite', name: "Oh it's focused", url: new URL('/', Astro.site).href },
+};
+---
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Oh it's focused" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={`${title} · Oh it's focused`} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={`${title} · Oh it's focused`} />
+    <meta name="twitter:description" content={description} />
+    <link rel="icon" href="/apple-touch-icon.png" />
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <title>{title} · Oh it's focused</title>
+  </head>
+  <body class="min-h-dvh antialiased">
+    <main class="mx-auto max-w-5xl px-4 py-4 sm:px-6">
+      <header class="mb-8 flex min-h-11 items-center gap-3 text-sm">
+        <a href="/" class="inline-flex min-h-11 items-center text-muted-foreground hover:text-foreground">← Tools</a>
+        <span aria-hidden="true" class="text-muted-foreground/50">/</span>
+        <span class="font-medium">Blog</span>
+      </header>
+      <slot />
+    </main>
+  </body>
+</html>
