@@ -1,7 +1,7 @@
 import ToolHelp from '@/components/ToolHelp';
 import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
-import { Check, Copy, Download, FileText, LoaderCircle, Upload } from 'lucide-react';
+import { Check, Copy, Download, FileText, LoaderCircle, Pause, Play, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SAMPLE_RATE, MAX_DURATION_SECONDS, LANGUAGES, modelForLanguage, languageLabel, formatTime, formatBytes, validateVideoFile, wordCount, normalizeSegments, markdownTranscript } from '@/lib/transcribe/core.js';
 
@@ -42,12 +42,54 @@ async function readAudio(file, duration, signal) {
   return audio;
 }
 
+function TranscriptDemo({ paused }) {
+  return <svg viewBox="0 0 420 176" aria-hidden="true" className="transcript-demo size-auto w-full max-w-[320px]" style={{ animationPlayState: paused ? 'paused' : 'running' }}>
+    <style>{`
+      .transcript-demo * { animation-play-state: inherit; }
+      @media (prefers-reduced-motion: no-preference) {
+        .transcript-demo .wave { transform-box: fill-box; transform-origin: center; animation: transcript-wave .8s ease-in-out infinite alternate; animation-play-state: inherit; }
+        .transcript-demo .line { animation: transcript-line 7s ease-in-out infinite; animation-play-state: inherit; }
+        @keyframes transcript-wave { to { transform: scaleY(.35); } }
+        @keyframes transcript-line { 0%,12%,100% { opacity: 0; } 28%,85% { opacity: 1; } 95% { opacity: 0; } }
+        @keyframes transcript-second { 0%,25%,100% { opacity: 0; } 42%,85% { opacity: 1; } 95% { opacity: 0; } }
+        @keyframes transcript-rest { 0%,40%,100% { opacity: 0; } 56%,85% { opacity: 1; } 95% { opacity: 0; } }
+      }
+    `}</style>
+    <g stroke="var(--border)" fill="var(--muted)" strokeWidth="1.5">
+      <rect x="34" y="18" width="116" height="140" rx="5" />
+      <rect x="242" y="18" width="144" height="140" rx="5" fill="var(--background)" />
+    </g>
+    <g fill="var(--muted-foreground)">
+      <circle cx="92" cy="62" r="19" /><path d="M54 113v-11a38 30 0 0 1 76 0v11Z" />
+      <path d="M74 50c3-18 33-22 38 2" fill="none" stroke="var(--foreground)" strokeWidth="2" strokeLinecap="round" />
+    </g>
+    <path d="M179 88h32m-7-7 7 7-7 7" fill="none" stroke="var(--muted-foreground)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <g stroke="var(--foreground)" strokeWidth="2" strokeLinecap="round">
+      {[8, 16, 24, 12, 20, 28, 16, 8].map((height, index) => <path key={index} className="wave" d={`M${64 + index * 8} ${135 - height / 2}v${height}`} style={{ animationDelay: `${index * -.13}s` }} />)}
+    </g>
+    <g fill="var(--foreground)" fontFamily="system-ui, sans-serif" fontSize="14">
+      <text className="line" x="258" y="63">A small idea.</text>
+      <text className="line" x="258" y="88" style={{ animationName: 'transcript-second' }}>Worth keeping.</text>
+    </g>
+    <g stroke="var(--muted-foreground)" strokeOpacity=".4" strokeWidth="2" strokeLinecap="round">
+      <path className="line" d="M258 113h106m-106 13h78" style={{ animationName: 'transcript-rest' }} />
+    </g>
+  </svg>;
+}
+
 export default function TranscribeReels() {
   const [state, setState] = useState(initial);
   const current = useRef(initial);
   const job = useRef({ id: 0, worker: null, smartWorker: null, abort: null, copyTimer: null });
   const input = useRef(null), video = useRef(null);
   const [time, setTime] = useState(0), [dragging, setDragging] = useState(false);
+  const [showDemo, setShowDemo] = useState(false), [demoPaused, setDemoPaused] = useState(false), [isChoosingFile, setIsChoosingFile] = useState(false);
+  useEffect(() => {
+    setShowDemo(false);
+    if (state.file || isChoosingFile || dragging) return;
+    const timer = window.setTimeout(() => { setDemoPaused(false); setShowDemo(true); }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [state.file, isChoosingFile, dragging]);
   const update = patch => { current.current = { ...current.current, ...patch }; setState(current.current); };
   const progress = (label, detail = '', percent = null) => update({ label, detail, percent });
   function terminate(key) {
@@ -235,7 +277,7 @@ export default function TranscribeReels() {
 
   return <div className="space-y-5">
     <div className={cn("grid items-start gap-6", state.file ? (state.busy || state.done || state.raw ? "lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]" : "mx-auto w-full max-w-lg") : "mx-auto flex min-h-[65svh] w-full max-w-lg flex-col justify-center")}>
-      <section className={cn(panel, 'space-y-5')} aria-label="Your video"
+      <section className={cn(panel, 'space-y-5', !state.file && 'w-full')} aria-label="Your video"
         onDragOver={event => { event.preventDefault(); if (!state.busy) setDragging(true); }}
         onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false); }}
         onDrop={event => {
@@ -254,7 +296,7 @@ export default function TranscribeReels() {
             </div>
           </ToolHelp>
         </div>}
-        <input ref={input} id="file-input" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.ogv,.mkv" className="hidden" disabled={state.busy} onChange={event => { chooseFile(event.target.files?.[0]); event.target.value = ''; }} />
+        <input ref={input} id="file-input" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.ogv,.mkv" className="hidden" disabled={state.busy} onClick={() => setIsChoosingFile(true)} onCancel={() => setIsChoosingFile(false)} onChange={event => { setIsChoosingFile(false); chooseFile(event.target.files?.[0]); event.target.value = ''; }} />
         {state.file ? <div className={cn('space-y-3 rounded-lg', dragging && 'ring-2 ring-ring')}>
           <video key={state.url} ref={video} src={state.url} controls playsInline preload="metadata" aria-label="Video preview" className="max-h-80 w-full rounded-lg bg-black" onTimeUpdate={event => setTime(event.currentTarget.currentTime)}
             onLoadedMetadata={event => {
@@ -263,8 +305,15 @@ export default function TranscribeReels() {
             }} onError={() => update({ error: 'This browser cannot play the preview. You can still try transcription, or choose MP4 with AAC audio or WebM with Opus audio.' })} />
 
         </div> : <Button variant="outline" className={cn('flex min-h-72 w-full whitespace-normal flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-5 py-10 text-center transition-colors hover:bg-accent', dragging && 'bg-accent ring-2 ring-ring')} onClick={() => input.current.click()}>
-          <Upload size={24} className="text-muted-foreground" /><span className="font-medium">Choose a video</span><span className="text-sm font-normal text-muted-foreground">Turn speech into text you can copy or save.</span><span className="text-xs font-normal text-muted-foreground">or drop it here · up to 250 MB / 30 min</span>
+          <span className="relative flex h-32 w-full items-center justify-center">
+            <Upload size={24} className={cn('text-muted-foreground transition-opacity motion-reduce:transition-none', showDemo && 'opacity-0')} />
+            {showDemo && <span className="absolute inset-0 flex items-center justify-center animate-in fade-in duration-500 motion-reduce:animate-none"><TranscriptDemo paused={demoPaused} /></span>}
+          </span>
+          <span className="font-medium">Choose a video</span><span className="text-sm font-normal text-muted-foreground">Turn speech into text you can copy or save.</span><span className="text-xs font-normal text-muted-foreground">or drop it here · up to 250 MB / 30 min</span>
         </Button>}
+        {!state.file && <div className="flex h-10 justify-center motion-reduce:hidden">
+          {showDemo && <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setDemoPaused(!demoPaused)}>{demoPaused ? <Play className="size-3" /> : <Pause className="size-3" />}{demoPaused ? 'Play demo' : 'Pause demo'}</Button>}
+        </div>}
         {state.file && <>
         <div className="space-y-2"><label htmlFor="transcribe-language" className="text-sm font-medium">Spoken language</label>
           <select id="transcribe-language" value={state.language} disabled={state.busy} onChange={event => update({ language: event.target.value, smart: event.target.value === 'en' && current.current.smart, error: '' })} className="w-full rounded-xl border border-input bg-background px-3 py-3 text-sm disabled:opacity-50">

@@ -221,6 +221,33 @@ function clampInterval(value: number) {
   return Math.min(2, Math.max(0.1, Math.round(value * 10) / 10));
 }
 
+function FontDemo({ id, paused }: { id: string; paused: boolean }) {
+  return <svg viewBox="0 0 420 176" aria-hidden="true" className="font-demo w-full max-w-[320px]" style={{ animationPlayState: paused ? 'paused' : 'running' }}>
+    <style>{`
+      .font-demo * { animation-play-state: inherit; }
+      .font-demo .type { opacity: 0; }
+      .font-demo .type:first-of-type { opacity: 1; }
+      @media (prefers-reduced-motion: no-preference) {
+        .font-demo .type { animation: font-demo-cycle 6s step-end infinite; animation-play-state: inherit; }
+        @keyframes font-demo-cycle { 0%,33.33%,100% { opacity: 1; } 33.34%,99.99% { opacity: 0; } }
+      }
+    `}</style>
+    <defs><g id={id}>
+      <rect width="100" height="156" rx="5" fill="var(--muted)" />
+      <circle cx="71" cy="32" r="10" fill="var(--muted-foreground)" fillOpacity=".3" />
+      <path d="m0 114 36-45 27 33 17-23 20 35v42H0Z" fill="var(--muted-foreground)" fillOpacity=".18" />
+      <path d="m0 132 28-23 32 28 23-12 17 12" fill="none" stroke="var(--muted-foreground)" strokeOpacity=".4" />
+      <rect width="100" height="156" rx="5" fill="none" stroke="var(--border)" />
+    </g></defs>
+    <use href={`#${id}`} x="66" y="10" />
+    <path d="M188 88h32m-7-7 7 7-7 7" fill="none" stroke="var(--muted-foreground)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <use href={`#${id}`} x="244" y="10" />
+    <g fill="var(--foreground)" textAnchor="middle" fontSize="19">
+      {['Georgia, serif', 'system-ui, sans-serif', 'monospace'].map((font, index) => <text key={font} className="type" x="294" y="79" fontFamily={font} fontWeight={index === 1 ? 650 : 400} style={{ animationDelay: `${index * -2}s` }}><tspan x="294">Stay</tspan><tspan x="294" dy="25">curious.</tspan></text>)}
+    </g>
+  </svg>;
+}
+
 export default function FontCycleCreator() {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +266,16 @@ export default function FontCycleCreator() {
   const [isExporting, setIsExporting] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDemo, setShowDemo] = useState(false);
+  const [demoPaused, setDemoPaused] = useState(false);
+  const [isChoosingFile, setIsChoosingFile] = useState(false);
+
+  useEffect(() => {
+    setShowDemo(false);
+    if (imageUrl || isChoosingFile || isDragActive) return;
+    const timer = window.setTimeout(() => { setDemoPaused(false); setShowDemo(true); }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [imageUrl, isChoosingFile, isDragActive]);
 
   const selectedFontsKey = selectedFontIds.join('|');
   const activeFonts = FONT_OPTIONS.filter((font) => selectedFontIds.includes(font.id));
@@ -285,6 +322,7 @@ export default function FontCycleCreator() {
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setIsChoosingFile(false);
     applyFile(event.target.files?.[0]);
     event.target.value = '';
   }
@@ -503,12 +541,18 @@ export default function FontCycleCreator() {
     <section className="mx-auto flex min-h-[65svh] max-w-lg flex-col justify-center">
       <label htmlFor={fileInputId} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}
         className={cn('flex min-h-72 cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border border-dashed px-6 py-10 text-center focus-within:ring-2 focus-within:ring-ring hover:bg-muted/30', isDragActive && 'bg-muted ring-2 ring-ring')}>
-        <input id={fileInputId} ref={fileInputRef} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} />
-        <ImagePlus className="size-6 text-muted-foreground" />
+        <input id={fileInputId} ref={fileInputRef} type="file" accept="image/*" className="sr-only" onChange={handleFileChange} onClick={() => setIsChoosingFile(true)} onCancel={() => setIsChoosingFile(false)} />
+        <span className="relative flex h-32 w-full items-center justify-center">
+          <ImagePlus className={cn('size-6 text-muted-foreground transition-opacity motion-reduce:transition-none', showDemo && 'opacity-0')} />
+          {showDemo && <span className="absolute inset-0 flex items-center justify-center animate-in fade-in duration-500 motion-reduce:animate-none"><FontDemo id={`${fileInputId}-demo`} paused={demoPaused} /></span>}
+        </span>
         <span className="font-medium">Choose an image</span>
         <span className="max-w-xs text-sm leading-6 text-muted-foreground">Add your words. Turn them into a video with changing fonts.</span>
         <span className="text-xs text-muted-foreground">or drop it here</span>
       </label>
+      <div className="flex h-10 justify-center motion-reduce:hidden">
+        {showDemo && <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setDemoPaused(!demoPaused)}>{demoPaused ? <Play className="size-3" /> : <Pause className="size-3" />}{demoPaused ? 'Play demo' : 'Pause demo'}</Button>}
+      </div>
       {errorMessage && <p role="alert" className="mt-4 text-sm text-destructive">{errorMessage}</p>}
     </section>
   );
