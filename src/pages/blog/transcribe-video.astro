@@ -1,14 +1,14 @@
 ---
 import GuideLayout from '@/layouts/GuideLayout.astro';
-const title = 'How to transcribe a video to text in your browser';
-const description = 'A practical guide to video transcription: choose a spoken language, run speech recognition in your browser, review timestamped text, then copy or save a Markdown transcript.';
+const title = 'How to transcribe video without uploading it';
+const description = 'Transcribe video to text in your browser without uploading the file. Choose a language, review timestamps, then copy or save a transcript. Includes a demo.';
 ---
 <GuideLayout title={title} description={description}>
   <article class="mx-auto max-w-3xl space-y-8 pb-12">
     <header class="space-y-4">
       <p class="text-xs text-muted-foreground">Blog · Video to text</p>
-      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">How to transcribe a video to text in your browser</h1>
-      <p class="text-base leading-7 text-muted-foreground">A video transcript is useful when you need to quote an interview, review a spoken draft, or turn a short clip into text you can reuse. This tool runs speech recognition on your device, then gives you timestamped passages to review against the video.</p>
+      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">{title}</h1>
+      <p class="text-base leading-7 text-muted-foreground">You can transcribe video to text without uploading the file to a transcription service. Speech recognition runs on your device, and the timestamps let you check each passage against the video. The transcript is useful for quoting an interview, reviewing a spoken draft, or reusing the words from a short clip.</p>
       <a href="/tools/transcribe-reels/" class="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">Open Video to text</a>
       <img src="/blog/covers/transcribe-video.svg" alt="Ink illustration of a video voice waveform turning into a written transcript" width="1200" height="680" fetchpriority="high" class="aspect-[30/17] w-full rounded-lg object-cover" />
     </header>

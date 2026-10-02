@@ -5,7 +5,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: title,
+  name: seoTitle,
   url: canonical.href,
   description,
   isPartOf: { '@type': 'WebSite', name: "Oh it's focused", url: new URL('/', Astro.site).href },

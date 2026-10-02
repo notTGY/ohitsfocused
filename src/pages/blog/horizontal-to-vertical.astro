@@ -1,21 +1,21 @@
 ---
 import GuideLayout from '@/layouts/GuideLayout.astro';
-const title = 'How to convert a horizontal video into a vertical video';
-const description = 'Learn how to reframe a landscape video as a vertical edit by selecting two areas and stacking them. See the 9:16 preview and download a sample clip.';
+const title = 'Convert horizontal video to vertical with two crops';
+const description = 'Turn a landscape video into a vertical 9:16 split screen. Select two crops, stack them, and keep both subjects visible. Includes a preview and sample clip.';
 ---
 <GuideLayout title={title} description={description}>
   <article class="mx-auto max-w-3xl space-y-8 pb-12">
     <header class="space-y-4">
       <p class="text-xs text-muted-foreground">Blog · Horizontal to vertical</p>
-      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">How to convert a horizontal video into a vertical video</h1>
-      <p class="text-base leading-7 text-muted-foreground">A standard center crop can cut off people or objects at the edges of a landscape shot. This tool takes two separate regions from each frame and stacks them in a portrait layout, so you can keep two subjects visible in one vertical edit.</p>
+      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">{title}</h1>
+      <p class="text-base leading-7 text-muted-foreground">To convert horizontal video to vertical while keeping two subjects visible, choose two areas of the landscape frame and stack them in a 9:16 split screen. A standard center crop can cut off people at the edges. This layout gives each subject its own space, with one crop above the other.</p>
       <a href="/tools/horizontal-to-vertical/" class="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">Open Horizontal to vertical</a>
       <img src="/blog/covers/horizontal-to-vertical.svg" alt="Ink illustration showing cyclists in a wide frame and two stacked portrait crops" width="1200" height="680" fetchpriority="high" class="aspect-[30/17] w-full rounded-lg object-cover" />
     </header>
 
     <section class="space-y-3">
       <h2 class="text-lg font-medium">Start with a wide shot that has two useful areas</h2>
-      <p class="text-sm leading-7 text-muted-foreground">The source can be a landscape video with two people, a speaker and a detail, or two parts of a scene that matter together. The tool creates two portrait-shaped crop windows and places one above the other. Each window shows a different part of the same source frame, rather than duplicating or blurring the background.</p>
+      <p class="text-sm leading-7 text-muted-foreground">The source can be a landscape interview with two people, a speaker and a detail, or gameplay with a facecam already in the same video. The tool creates two crop windows and places one above the other in the vertical output. Each window shows a different part of the same source frame. Both crops come from one video file.</p>
       <p class="text-sm leading-7 text-muted-foreground">The example shows two cyclists spaced across a wide road. The first crop is positioned over the rider on the left; the second is over the rider on the right. If the important subjects sit close together, the two windows can overlap in the source, but that may make the final frames feel repetitive.</p>
     </section>
 

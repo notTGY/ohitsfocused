@@ -1,17 +1,17 @@
 ---
 import '@/styles/global.css';
 const canonical = new URL('/', Astro.site);
-const seoTitle = 'Free browser tools for images and video';
-const description = 'Create text videos, reframe horizontal video, and transcribe speech with free browser tools. Your files stay on your device.';
+const seoTitle = 'Free video tools that run in your browser';
+const description = 'Make videos with cycling fonts, convert horizontal video to a vertical split screen, and transcribe video to text. Free, no accounts. Files stay on your device.';
 const tools = [
-  { href: 'font-cycle', name: 'Font cycle', description: 'Add your words to an image and cycle through type styles.' },
-  { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Turn a horizontal video into a vertical edit with two frames.' },
-  { href: 'transcribe-reels', name: 'Video to text', description: 'Transcribe speech from a video to text in your browser.' },
+  { href: 'font-cycle', name: 'Font cycle', description: 'Make a video with changing fonts over your image.' },
+  { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Convert a wide video to vertical with two stacked crops.' },
+  { href: 'transcribe-reels', name: 'Video to text', description: 'Transcribe a video to text without uploading it.' },
 ];
 const articles = [
-  { href: '/blog/font-cycle/', title: 'How to make a font-cycle video', image: '/blog/thumbs/font-cycle.svg', alt: 'The same coffee image and words shown in three different fonts' },
-  { href: '/blog/horizontal-to-vertical/', title: 'How to reframe a horizontal video', image: '/blog/thumbs/horizontal-to-vertical.svg', alt: 'Two cyclists cropped from a wide video and stacked in a portrait frame' },
-  { href: '/blog/transcribe-video/', title: 'How to transcribe a video', image: '/blog/thumbs/transcribe-video.svg', alt: 'A speaker in a video beside a timestamped transcript' },
+  { href: '/blog/font-cycle/', title: 'Make a video with cycling fonts', image: '/blog/thumbs/font-cycle.svg', alt: 'The same coffee image and words shown in three different fonts' },
+  { href: '/blog/horizontal-to-vertical/', title: 'Convert horizontal video to vertical', image: '/blog/thumbs/horizontal-to-vertical.svg', alt: 'Two cyclists cropped from a wide video and stacked in a portrait frame' },
+  { href: '/blog/transcribe-video/', title: 'Transcribe video without uploading it', image: '/blog/thumbs/transcribe-video.svg', alt: 'A speaker in a video beside a timestamped transcript' },
 ];
 const schema = {
   '@context': 'https://schema.org',
