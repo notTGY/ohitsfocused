@@ -208,6 +208,42 @@ function waitForVideo(video: HTMLVideoElement) {
   });
 }
 
+function ReframeDemo({ id, paused }: { id: string; paused: boolean }) {
+  return <svg viewBox="0 0 420 176" aria-hidden="true" className="reframe-demo w-full max-w-[320px]" style={{ animationPlayState: paused ? 'paused' : 'running' }}>
+    <style>{`
+      .reframe-demo .top-crop { transform: translate(270px,-42px); }
+      .reframe-demo .bottom-crop { transform: translate(154px,22px); }
+      @media (prefers-reduced-motion: no-preference) {
+        .reframe-demo .crop { animation: reframe-crop 7s cubic-bezier(.4,0,.2,1) infinite; animation-play-state: inherit; }
+        .reframe-demo .top-crop { --dx: 270px; --dy: -42px; }
+        .reframe-demo .bottom-crop { --dx: 154px; --dy: 22px; animation-delay: .18s; }
+        @keyframes reframe-crop {
+          0%,20%,100% { transform: translate(0,0); opacity: 1; }
+          52%,80% { transform: translate(var(--dx),var(--dy)); opacity: 1; }
+          88% { transform: translate(var(--dx),var(--dy)); opacity: 0; }
+          89%,95% { transform: translate(0,0); opacity: 0; }
+        }
+      }
+    `}</style>
+    <defs><g id={id} fill="var(--muted-foreground)"><circle cx="36" cy="20" r="10" /><path d="M15 60v-8a21 21 0 0 1 42 0v8Z" /><path d="M22 12c3-9 22-13 28 1" fill="none" stroke="var(--foreground)" strokeWidth="2" strokeLinecap="round" /></g></defs>
+    <g fill="none" stroke="var(--border)" strokeWidth="1.5">
+      <rect x="16" y="28" width="236" height="133" rx="5" fill="var(--muted)" />
+      <path d="M17 130h234M30 46h22m162 0h22" />
+      <rect x="314" y="26" width="80" height="136" rx="6" />
+      <path d="M315 94h78" />
+      <path d="M273 94h23m-6-6 6 6-6 6" stroke="var(--muted-foreground)" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+    <use href={`#${id}`} x="48" y="72" /><use href={`#${id}`} x="164" y="72" />
+    {['top', 'bottom'].map((crop, index) => <g key={crop} className={`crop ${crop}-crop`}>
+      <svg x={index ? 164 : 48} y="72" width="72" height="64" viewBox="0 0 72 64" overflow="hidden">
+        <rect width="72" height="64" fill="var(--muted)" /><use href={`#${id}`} />
+        <rect width="72" height="64" fill={index ? '#fbbf24' : '#22d3ee'} fillOpacity=".08" />
+      </svg>
+      <rect x={index ? 164 : 48} y="72" width="72" height="64" rx="2" fill="none" stroke={index ? '#fbbf24' : '#22d3ee'} strokeWidth="2" />
+    </g>)}
+  </svg>;
+}
+
 export default function HorizontalToVertical() {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -233,6 +269,16 @@ export default function HorizontalToVertical() {
   const [showFrames, setShowFrames] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDemo, setShowDemo] = useState(false);
+  const [demoPaused, setDemoPaused] = useState(false);
+  const [isChoosingFile, setIsChoosingFile] = useState(false);
+
+  useEffect(() => {
+    setShowDemo(false);
+    if (videoUrl || isChoosingFile || isDragActive) return;
+    const timer = window.setTimeout(() => { setDemoPaused(false); setShowDemo(true); }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [videoUrl, isChoosingFile, isDragActive]);
 
   const videoAspect = metadata ? metadata.width / metadata.height : 16 / 9;
   const hasBothCrops = Boolean(crops[0] && crops[1]);
@@ -290,6 +336,7 @@ export default function HorizontalToVertical() {
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setIsChoosingFile(false);
     applyFile(event.target.files?.[0]);
     event.target.value = '';
   }
@@ -771,14 +818,22 @@ export default function HorizontalToVertical() {
             className="sr-only"
             type="file"
             accept="video/*"
+            onClick={() => setIsChoosingFile(true)}
+            onCancel={() => setIsChoosingFile(false)}
             onChange={handleFileChange}
           />
-          <Upload className="mb-4 size-6 text-muted-foreground" />
+          <div className="relative mb-4 flex h-32 w-full items-center justify-center">
+            <Upload className={cn('size-6 text-muted-foreground transition-opacity motion-reduce:transition-none', showDemo && 'opacity-0')} />
+            {showDemo && <div className="absolute inset-0 flex items-center justify-center animate-in fade-in duration-500 motion-reduce:animate-none"><ReframeDemo id={`${fileInputId}-demo`} paused={demoPaused} /></div>}
+          </div>
           <span className="font-medium">Choose a video</span>
           <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">Pick two frames from a wide video. Stack them into a vertical edit.</p>
           <span className="mt-4 text-xs text-muted-foreground">or drop it here</span>
           {errorMessage ? <p className="mt-5 text-sm text-destructive">{errorMessage}</p> : null}
         </label>
+        <div className="flex h-10 justify-center motion-reduce:hidden">
+          {showDemo && <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setDemoPaused(!demoPaused)}>{demoPaused ? <Play className="size-3" /> : <Pause className="size-3" />}{demoPaused ? 'Play demo' : 'Pause demo'}</Button>}
+        </div>
       </section>
     );
   }
