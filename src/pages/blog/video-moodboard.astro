@@ -3,7 +3,7 @@ import GuideLayout from '@/layouts/GuideLayout.astro';
 const title = 'Give AI a video reference with a moodboard and transcript';
 const description = 'Turn video into a grid of evenly spaced frames, then pair it with a transcript to give an image-capable AI a reference for the story, visuals, and style.';
 ---
-<GuideLayout title={title} description={description} image="/demo/moodboard-preview.png">
+<GuideLayout seoTitle="Video moodboard and transcript for AI reference" image="/social/moodboard.jpg" imageAlt="A video becoming nine different timestamped reference frames" title={title} description={description}>
   <article class="mx-auto max-w-3xl space-y-8 pb-12">
     <header class="space-y-4">
       <p class="text-xs text-muted-foreground">Blog · Moodboard</p>
@@ -15,7 +15,7 @@ const description = 'Turn video into a grid of evenly spaced frames, then pair i
 
     <section class="space-y-3">
       <h2 class="text-lg font-medium">Turn a video into one reference image</h2>
-      <p class="text-sm leading-7 text-muted-foreground">Choose a video in <a href="/tools/moodboard/" class="underline underline-offset-4">Moodboard</a>. The tool automatically samples nine frames and arranges them in a 3 × 3 grid. It divides the video's duration into nine equal intervals and takes a frame from the middle of each interval, giving you an even spread through the clip without seeking to its exact endpoint.</p>
+      <p class="text-sm leading-7 text-muted-foreground">A video moodboard, also called a video contact sheet, collects still frames from a clip in one image. Choose a video in <a href="/tools/moodboard/" class="underline underline-offset-4">Moodboard</a>. The tool automatically samples nine frames and arranges them in a 3 × 3 grid. It divides the video's duration into nine equal intervals and takes a frame from the middle of each interval, giving you an even spread through the clip without seeking to its exact endpoint.</p>
       <p class="text-sm leading-7 text-muted-foreground">Read the grid from left to right, then top to bottom. Each frame has its number and timestamp underneath. The full picture keeps its proportions, so a portrait clip stays portrait inside each cell and a landscape shot keeps its edges. Save PNG downloads the same image you see in the preview.</p>
       <p class="text-sm leading-7 text-muted-foreground">Your video stays on your device while the browser creates the grid. No account or model download is needed for Moodboard. The file can be up to 250 MB, and its video format must be playable by your browser.</p>
     </section>

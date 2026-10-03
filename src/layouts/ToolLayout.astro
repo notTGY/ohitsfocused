@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
-const { title, description, seoTitle = `${title} — free browser tool` } = Astro.props;
+import SeoHead from '@/components/SeoHead.astro';
+const { title, description, seoTitle = `${title} — free browser tool`, image, imageAlt } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const schema = {
   '@context': 'https://schema.org',
@@ -20,26 +21,7 @@ const breadcrumbs = {
 };
 ---
 <html lang="en" class="dark">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <meta name="description" content={description} />
-    <meta name="robots" content="index,follow,max-image-preview:large" />
-    <link rel="canonical" href={canonical} />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Oh it's focused" />
-    <meta property="og:url" content={canonical} />
-    <meta property="og:title" content={`${seoTitle} · Oh it's focused`} />
-    <meta property="og:description" content={description} />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={`${seoTitle} · Oh it's focused`} />
-    <meta name="twitter:description" content={description} />
-    <link rel="icon" href="/apple-touch-icon.png" />
-    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
-    <title>{seoTitle} · Oh it's focused</title>
-  </head>
+  <head><SeoHead title={seoTitle} description={description} image={image} imageAlt={imageAlt} schemas={[schema, breadcrumbs]} /><slot name="head" /></head>
   <body class="min-h-dvh antialiased">
     <main class="mx-auto max-w-6xl px-4 py-4 sm:px-6">
       <header class="mb-5 flex min-h-11 items-center gap-3 text-sm">

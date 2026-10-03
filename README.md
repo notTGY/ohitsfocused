@@ -1,43 +1,22 @@
-# Astro Starter Kit: Minimal
+# Oh it's focused
+
+Browser tools built with Astro, React, Tailwind, and Bun. User media stays on the device.
 
 ```sh
-bun create astro@latest -- --template minimal
+bun install
+bun dev
+bun run build
+bun preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Routes live in `src/pages/`; interactive pages live in `src/components/`. Shared search and social metadata lives in `SeoHead.astro`. Add a tool and its article to the home page, and provide a 1200 × 630 JPEG in `public/social/`. The sitemap updates automatically on build and excludes the 404 page.
 
-## 🚀 Project Structure
+JakeLoud currently uses Python's default HTTP server. To serve the custom 404 page, use this build/start command for `oif`:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+bun i && bun run build && cd dist && python3 ../scripts/serve.py "$PORT"
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+The Docker deployment uses `nginx.conf`, which also serves `404.html` with HTTP status 404. Unknown URLs must return 404, rather than the home page with status 200.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Google Search Console uses the domain property `ohitsfocused.com` and `https://ohitsfocused.com/sitemap-index.xml`. After publishing new pages, inspect their live URLs and request indexing. Keep error pages out of the sitemap.

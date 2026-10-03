@@ -2,6 +2,8 @@
 import ToolLayout from '@/layouts/ToolLayout.astro';
 import FontCycleCreator from '@/components/FontCycleCreator';
 ---
-<ToolLayout title="Font cycle" seoTitle="Font cycling video maker" description="Make a video with changing fonts over a single image. Add text, choose typefaces, and save a vertical video for free. Your image stays on your device.">
+<ToolLayout image="/social/font-cycle.jpg" imageAlt="Three coffee images with the same words in different typefaces" title="Font cycle" seoTitle="Font cycling video maker" description="Make a video with changing fonts over a single image. Add text, choose typefaces, and save a vertical video for free. Your image stays on your device.">
+  <link slot="head" rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link slot="head" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@500;700&display=swap" />
   <FontCycleCreator client:load />
 </ToolLayout>
