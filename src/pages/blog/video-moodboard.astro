@@ -1,0 +1,62 @@
+---
+import GuideLayout from '@/layouts/GuideLayout.astro';
+const title = 'Give AI a video reference with a moodboard and transcript';
+const description = 'Turn video into a grid of evenly spaced frames, then pair it with a transcript to give an image-capable AI a reference for the story, visuals, and style.';
+---
+<GuideLayout title={title} description={description} image="/demo/moodboard-preview.png">
+  <article class="mx-auto max-w-3xl space-y-8 pb-12">
+    <header class="space-y-4">
+      <p class="text-xs text-muted-foreground">Blog · Moodboard</p>
+      <h1 class="text-2xl font-medium tracking-tight sm:text-3xl">{title}</h1>
+      <p class="text-base leading-7 text-muted-foreground">Sometimes you want an AI to understand a video's story and visual style, but you only have an image attachment and a text box. A moodboard and a transcript give it two useful references: sampled pictures from the clip and the words that were spoken. You can discuss the setting, subjects, framing, colors, and scenario without feeding it the entire video.</p>
+      <a href="/tools/moodboard/" class="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent">Open Moodboard</a>
+      <img src="/blog/covers/moodboard.svg" alt="A video timeline becoming nine distinct scenes: a street, cyclist, bridge, café, coffee, pastry, conversation, tabletop, and sunset" width="1200" height="680" fetchpriority="high" class="aspect-[30/17] w-full rounded-lg object-cover" />
+    </header>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Turn a video into one reference image</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Choose a video in <a href="/tools/moodboard/" class="underline underline-offset-4">Moodboard</a>. The tool automatically samples nine frames and arranges them in a 3 × 3 grid. It divides the video's duration into nine equal intervals and takes a frame from the middle of each interval, giving you an even spread through the clip without seeking to its exact endpoint.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Read the grid from left to right, then top to bottom. Each frame has its number and timestamp underneath. The full picture keeps its proportions, so a portrait clip stays portrait inside each cell and a landscape shot keeps its edges. Save PNG downloads the same image you see in the preview.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Your video stays on your device while the browser creates the grid. No account or model download is needed for Moodboard. The file can be up to 250 MB, and its video format must be playable by your browser.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Use more frames when the story changes quickly</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Rows and columns can each be changed from one to six. A 2 × 3 grid gives you six samples; a 4 × 4 grid gives you sixteen. Changing either number rebuilds the image with evenly spaced samples across the same video.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Nine frames are a useful starting point for a short clip. Add more for a video with several locations or frequent cuts. Each frame's longest edge is at most 640 pixels, and the complete image fits within a 3072-pixel edge. Large grids use smaller frames to keep the saved image manageable, so more samples also mean less detail in each one.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Add the words with Video to text</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Open the same clip in <a href="/tools/transcribe-reels/" class="underline underline-offset-4">Video to text</a>, choose its spoken language and transcription quality, then transcribe it. Listen at the timestamps and correct names, numbers, and missed words directly in the text. Copy the transcript or save it as Markdown.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Attach the moodboard to an AI that accepts images and include the corrected transcript in your message. The moodboard shows what was visible at its sample times; the transcript supplies dialogue or narration that a still image cannot show. If the order of a spoken line matters, include its timestamp from the transcription page: the copied text and Markdown export do not include timestamps.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Both tools prepare their results locally. When you attach the PNG or paste the transcript into another service, you are sharing those results with that service.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Ask for a description you can work from</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Tell the AI what you want to make: a similar scene, a shot list, a new script, or an explanation of the video's visual language. A concrete request gives it a direction for interpreting the references. For example:</p>
+      <blockquote class="border-l-2 border-border pl-4 text-sm leading-7 text-muted-foreground">I've attached a moodboard sampled from a video, in chronological order, and included its corrected transcript below. Describe the scenario, subjects, setting, composition, lighting, color palette, and how the narration relates to the pictures. Separate what the frames show from what you infer. Then suggest a shot list and a short script for a new video with a similar style. Do not invent camera movement or actions between frames.</blockquote>
+      <p class="text-sm leading-7 text-muted-foreground">For a style reference, ask about visible choices such as warm daylight, close framing, wardrobe, backgrounds, or recurring colors. For a scenario reference, ask how the sampled scenes connect to the spoken story. You can point to a specific frame number when a detail matters.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Check what the samples leave out</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Uniform sampling does not detect scene changes or pick highlights. A quick gesture, a subtitle, or an entire short shot may fall between samples. A still grid also cannot establish camera movement, editing rhythm, or what happens during every second of the clip. Automatic transcripts can miss speech too.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Review the saved image and corrected transcript before sharing them. If a key moment is missing, try a denser grid or provide an additional reference for that moment. Together, the two outputs give the AI much more context for the style and scenario; they remain a sampled reference, rather than a complete record of the video.</p>
+    </section>
+
+    <section aria-labelledby="moodboard-demo" class="space-y-5 border-t border-border pt-8">
+      <div class="space-y-3">
+        <p class="text-xs text-muted-foreground">Example · Bike ride and coffee detour</p>
+        <h2 id="moodboard-demo" class="text-lg font-medium">One clip, nine frames</h2>
+        <p class="text-sm leading-7 text-muted-foreground">This is the same narrated clip used in the <a href="/blog/transcribe-video/" class="underline underline-offset-4">transcription guide</a>. Its moodboard lets you inspect the visual reference alongside the spoken story. Download the sample video to try both tools with the same file.</p>
+        <a href="/demo/transcription-sample.mp4" download="bike-narration-example.mp4" class="inline-flex min-h-11 items-center text-sm underline underline-offset-4">Download sample video</a>
+      </div>
+      <figure class="space-y-3">
+        <a href="/demo/moodboard-preview.png" download="bike-moodboard-3x3.png" aria-label="Download the sample moodboard PNG"><img src="/demo/moodboard-preview.png" alt="Nine timestamped frames from a narrated bike ride and coffee stop, ordered from left to right and top to bottom" width="1928" height="1184" loading="lazy" class="w-full rounded-md" /></a>
+        <figcaption class="text-xs text-muted-foreground">3 × 3 moodboard · select the image to download the PNG</figcaption>
+      </figure>
+    </section>
+  </article>
+</GuideLayout>

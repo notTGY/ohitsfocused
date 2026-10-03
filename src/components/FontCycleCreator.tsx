@@ -232,7 +232,7 @@ function FontDemo({ id, paused }: { id: string; paused: boolean }) {
         @keyframes font-demo-cycle { 0%,33.33%,100% { opacity: 1; } 33.34%,99.99% { opacity: 0; } }
       }
     `}</style>
-    <defs><g id={id}>
+    <defs><clipPath id={`${id}-clip`}><rect width="100" height="156" rx="5" /></clipPath><g id={id} clipPath={`url(#${id}-clip)`}>
       <rect width="100" height="156" rx="5" fill="var(--muted)" />
       <circle cx="71" cy="32" r="10" fill="var(--muted-foreground)" fillOpacity=".3" />
       <path d="m0 114 36-45 27 33 17-23 20 35v42H0Z" fill="var(--muted-foreground)" fillOpacity=".18" />

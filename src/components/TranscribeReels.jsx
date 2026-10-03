@@ -1,13 +1,14 @@
 import ToolHelp from '@/components/ToolHelp';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, Download, FileText, LoaderCircle, Pause, Play, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SAMPLE_RATE, MAX_DURATION_SECONDS, LANGUAGES, modelForLanguage, languageLabel, formatTime, formatBytes, validateVideoFile, wordCount, normalizeSegments, markdownTranscript } from '@/lib/transcribe/core.js';
+import { SAMPLE_RATE, MAX_DURATION_SECONDS, LANGUAGES, WHISPER_MODELS, modelForLanguage, languageLabel, formatTime, formatBytes, validateVideoFile, wordCount, normalizeSegments, markdownTranscript } from '@/lib/transcribe/core.js';
 
 const button = 'min-h-11 inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40';
 const panel = 'min-w-0';
-const initial = { file: null, url: '', duration: 0, language: 'en', supported: false, smart: false, smartSupport: 'Checking device compatibility…', busy: false, refining: false, loadedModel: '', label: '', detail: '', percent: null, draft: '', draftNote: '', error: '', note: '', raw: '', segments: [], clean: null, refined: false, resultLanguage: 'en', done: false, copied: false };
+const initial = { file: null, url: '', duration: 0, language: 'en', modelSize: 'tiny', supported: false, smart: false, smartSupport: 'Checking device compatibility…', busy: false, refining: false, loadedModel: '', label: '', detail: '', percent: null, draft: '', draftNote: '', error: '', note: '', raw: '', segments: [], clean: null, refined: false, resultLanguage: 'en', resultModelSize: '', done: false, copied: false };
 
 async function readAudio(file, duration, signal) {
   const check = () => { if (signal.aborted) throw new DOMException('Cancelled', 'AbortError'); };
@@ -40,6 +41,16 @@ async function readAudio(file, duration, signal) {
   check();
   if (peak < 0.00001) throw new Error('This audio track is silent. Choose a video with audible speech.');
   return audio;
+}
+
+function TranscriptEditor({ value, onChange, disabled, label, placeholder }) {
+  const input = useRef(null);
+  useEffect(() => {
+    input.current.style.height = 'auto';
+    input.current.style.height = `${input.current.scrollHeight}px`;
+  }, [value]);
+  return <Textarea ref={input} dir="auto" aria-label={label} value={value} onChange={onChange} disabled={disabled} placeholder={placeholder} rows={1}
+    className="min-h-11 min-w-0 resize-none border-transparent leading-7 shadow-none hover:border-input/50 md:text-base dark:bg-transparent" />;
 }
 
 function TranscriptDemo({ paused }) {
@@ -143,7 +154,7 @@ export default function TranscribeReels() {
     video.current?.pause();
     if (current.current.url) URL.revokeObjectURL(current.current.url);
     setTime(0);
-    update({ file, url: URL.createObjectURL(file), duration: 0, raw: '', segments: [], clean: null, refined: false, done: false, copied: false, error: '', note: '', draft: '' });
+    update({ file, url: URL.createObjectURL(file), duration: 0, raw: '', segments: [], clean: null, refined: false, resultModelSize: '', done: false, copied: false, error: '', note: '', draft: '' });
   }
 
   function failure(message, smart = false) {
@@ -189,18 +200,18 @@ export default function TranscribeReels() {
       if (!valid() || data.id !== job.current.id) return;
       switch (data.type) {
         case 'status': progress(data.label); break;
-        case 'download': progress(data.initializing ? 'Preparing the model…' : 'Downloading Whisper tiny…', data.total > 0 ? `${formatBytes(data.loaded)} / ${formatBytes(data.total)}` : `${formatBytes(data.loaded)} loaded`, !data.initializing && data.total > 0 ? data.loaded / data.total * 100 : null); break;
+        case 'download': progress(data.initializing ? 'Preparing the model…' : `Downloading Whisper ${current.current.modelSize}…`, data.total > 0 ? `${formatBytes(data.loaded)} / ${formatBytes(data.total)}` : `${formatBytes(data.loaded)} loaded`, !data.initializing && data.total > 0 ? data.loaded / data.total * 100 : null); break;
         case 'ready': update({ loadedModel: data.model }); break;
         case 'draft': update({ draft: data.text, draftNote: data.windows > 1 ? `Live preview · Part ${data.window} of ${data.windows}` : 'Live preview · Finishing touches to follow' }); break;
         case 'progress': progress('Transcribing on your device…', `${formatTime(data.processed)} / ${formatTime(data.duration)}`, data.processed / data.duration * 100); break;
         case 'complete': {
           const result = normalizeSegments(data.output, data.duration);
           job.current.abort = null;
-          update({ raw: result.text, segments: result.segments, busy: false, done: true, draft: '', note: result.text ? 'Transcript ready. Give it a read for any missed words.' : 'No speech detected. Try a clip with clear spoken audio.' });
+          update({ raw: result.text, segments: result.segments, busy: false, done: true, draft: '', note: result.text ? 'Transcript ready. Edit any missed words before copying or saving.' : 'No speech detected. Try a clip with clear spoken audio.' });
           if (result.text && current.current.smart && current.current.resultLanguage === 'en') refine(result.text, 'en', data.id);
           break;
         }
-        case 'error': failure(data.stage === 'load' ? 'Whisper could not load. Check your connection and allow downloads from Hugging Face and jsDelivr, then try again.' : 'This device could not finish transcription. Try a shorter clip, close heavy tabs, or use another browser.'); break;
+        case 'error': failure(data.stage === 'load' ? 'Whisper could not load. Try a smaller model, or check your connection and allow downloads from Hugging Face and jsDelivr.' : 'This device could not finish transcription. Try a smaller model or shorter clip, close heavy tabs, or use another browser.'); break;
       }
     };
     worker.onerror = event => { event.preventDefault(); if (valid()) failure('The local transcription engine could not start. Allow model downloads and try again.'); };
@@ -221,26 +232,37 @@ export default function TranscribeReels() {
     }
     if (!s.file || !s.supported) return;
     const id = ++job.current.id;
-    if (s.smart && s.raw && s.clean === null && s.resultLanguage === 'en' && s.language === 'en') { refine(s.raw, s.resultLanguage, id); return; }
+    if (s.smart && s.raw && s.clean === null && s.resultLanguage === 'en' && s.language === 'en' && s.resultModelSize === s.modelSize) { refine(s.raw, s.resultLanguage, id); return; }
     const controller = new AbortController();
     job.current.abort = controller;
     clearTimeout(job.current.copyTimer);
-    update({ busy: true, refining: false, raw: '', segments: [], clean: null, refined: false, done: false, copied: false, resultLanguage: s.language, error: '', note: '', draft: '', draftNote: 'You can keep watching while we work.' });
+    update({ busy: true, refining: false, raw: '', segments: [], clean: null, refined: false, done: false, copied: false, resultLanguage: s.language, resultModelSize: s.modelSize, error: '', note: '', draft: '', draftNote: 'You can keep watching while we work.' });
     progress('Preparing the audio…');
     try {
-      modelForLanguage(s.language);
+      modelForLanguage(s.language, s.modelSize);
       const audio = await readAudio(s.file, s.duration, controller.signal);
       if (job.current.id !== id) return;
       update({ duration: audio.length / SAMPLE_RATE });
-      progress('Loading Whisper tiny…');
-      getWorker().postMessage({ type: 'transcribe', id, language: s.language, audio }, [audio.buffer]);
+      progress(`Loading Whisper ${s.modelSize}…`);
+      getWorker().postMessage({ type: 'transcribe', id, language: s.language, modelSize: s.modelSize, audio }, [audio.buffer]);
     } catch (error) { if (job.current.id === id && error.name !== 'AbortError') failure(error.message || 'The video could not be processed.'); }
   }
 
   const text = state.refined ? state.clean ?? '' : state.raw;
   const smartHint = state.language !== 'en' ? 'S1-mini currently supports English only.' : state.smartSupport || 'S1-mini by Superwhisper · about 365 MB plus runtime on first use.';
-  const canRefine = state.smart && state.raw && state.clean === null && state.resultLanguage === 'en' && state.language === 'en';
+  const quality = WHISPER_MODELS.find(model => model.id === state.modelSize);
+  const canRefine = state.smart && state.raw && state.clean === null && state.resultLanguage === 'en' && state.language === 'en' && state.resultModelSize === state.modelSize;
   const activeSegment = state.segments.findIndex(segment => time >= segment.start && time < segment.end);
+
+  function editTranscript(value, index) {
+    if (current.current.busy) return;
+    clearTimeout(job.current.copyTimer);
+    if (current.current.refined) update({ clean: value, copied: false });
+    else {
+      const segments = current.current.segments.map((segment, i) => i === index ? { ...segment, text: value } : segment);
+      update({ segments, raw: segments.map(segment => segment.text.trim()).filter(Boolean).join(' '), copied: false });
+    }
+  }
 
   async function copy() {
     const id = job.current.id;
@@ -288,7 +310,7 @@ export default function TranscribeReels() {
         }}>
         {state.file && <div className="flex items-center justify-between gap-2">
           <Button variant="ghost" disabled={state.busy} onClick={() => input.current.click()}>Replace</Button>
-          <ToolHelp><p>Choose the spoken language, then transcribe. Select a timestamp to listen; copy or save the text when it is ready.</p><p className="mt-2">Your video stays on this device. First use downloads about 41 MB. Clips can be up to 250 MB or 30 minutes.</p>
+          <ToolHelp><p>Choose the spoken language and quality, then transcribe. Select a timestamp to listen and edit the text to correct missed words. Copy or save includes your edits. Original and refined versions can be edited separately.</p><p className="mt-2">Your video stays on this device. Models download when transcription starts and are cached by your browser when space allows. Larger models generally improve accuracy but use more memory and take longer. Download sizes exclude the browser runtime. Clips can be up to 250 MB or 30 minutes.</p>
             <div className="mt-4 border-t pt-3">
               <label className="flex min-h-11 items-center gap-2"><input id="smart-checkbox" type="checkbox" aria-describedby="smart-hint" checked={state.smart} disabled={state.busy || state.language !== 'en' || Boolean(state.smartSupport)} onChange={event => update({ smart: event.target.checked })} />Clean up wording</label>
               <p id="smart-hint" className="text-xs text-muted-foreground">Remove fillers. Keep the original. {smartHint}</p>
@@ -320,6 +342,12 @@ export default function TranscribeReels() {
             <option value="en">English</option>{LANGUAGES.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
           </select>
         </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2 text-sm"><label htmlFor="transcribe-quality" className="font-medium">Quality</label><span>{quality.label} · ~{quality.mb >= 1000 ? `${(quality.mb / 1000).toFixed(2)} GB` : `${quality.mb} MB`}</span></div>
+          <input id="transcribe-quality" type="range" min={0} max={WHISPER_MODELS.length - 1} step={1} value={WHISPER_MODELS.indexOf(quality)} disabled={state.busy} aria-valuetext={quality.label} aria-describedby="transcribe-quality-hint" onChange={event => update({ modelSize: WHISPER_MODELS[Number(event.target.value)].id, error: '' })} className="min-h-11 w-full accent-foreground disabled:opacity-50" />
+          <div aria-hidden="true" className="flex justify-between text-xs text-muted-foreground">{WHISPER_MODELS.map(model => <span key={model.id}>{model.label}</span>)}</div>
+          <p id="transcribe-quality-hint" className="pt-1 text-xs leading-5 text-muted-foreground">{quality.overview} {state.loadedModel === modelForLanguage(state.language, state.modelSize) ? 'Loaded on this device.' : 'Model download on first use, plus browser runtime.'}</p>
+        </div>
         {state.busy ? <div className="space-y-2" role="status">
           <div className="flex items-center gap-2 text-sm"><LoaderCircle size={16} className="shrink-0 animate-spin" /><span>{state.label}</span></div>
           <progress aria-label={state.label} max={100} value={state.percent == null ? undefined : Math.max(0, Math.min(100, state.percent))} className="h-1.5 w-full accent-current" />
@@ -328,22 +356,21 @@ export default function TranscribeReels() {
         <Button variant="default" id="transcribe-button" onClick={start} disabled={!state.busy && (!state.file || !state.supported)} className={cn(button, 'w-full bg-primary py-3 text-primary-foreground hover:bg-primary/90')}>
           {state.busy ? (state.refining ? 'Stop refining' : 'Cancel') : canRefine ? 'Refine transcript' : state.done ? 'Transcribe again' : 'Transcribe video'}
         </Button>
-        {!state.busy && !state.loadedModel && <p className="text-xs text-muted-foreground">First use downloads ~41 MB. Video stays on this device.</p>}
         </>}
       </section>
       {(state.busy || state.done || state.raw) && <section className={cn(panel, 'flex min-h-96 flex-col lg:min-h-[620px]')} aria-labelledby="transcript-title" aria-busy={state.busy}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <h2 id="transcript-title" className="text-base font-medium">Transcript</h2>
-          {state.raw && <div className="flex gap-2"><Button variant="outline" id="copy-button" className={button} disabled={!text} onClick={copy}>{state.copied ? <Check size={15} /> : <Copy size={15} />}{state.copied ? 'Copied' : 'Copy'}</Button><Button variant="outline" id="download-button" className={button} disabled={!text} onClick={download}><Download size={15} />Markdown</Button></div>}
+          {state.segments.length > 0 && <div className="flex gap-2"><Button variant="outline" id="copy-button" className={button} disabled={!text.trim()} onClick={copy}>{state.copied ? <Check size={15} /> : <Copy size={15} />}{state.copied ? 'Copied' : 'Copy'}</Button><Button variant="outline" id="download-button" className={button} disabled={!text.trim()} onClick={download}><Download size={15} />Markdown</Button></div>}
         </div>
         {state.clean !== null && <div className="flex items-center justify-between gap-3 pt-4 text-xs text-muted-foreground"><span>{state.refined ? 'Refined locally' : 'Whisper original'}</span><Button variant="outline" id="version-button" className={button} onClick={() => update({ refined: !state.refined, copied: false })}>{state.refined ? 'Show original' : 'Show refined'}</Button></div>}
-        {state.raw ? <>
+        {state.segments.length > 0 ? <>
           <div id="transcript-text" className="my-5 max-h-[560px] flex-1 space-y-2 overflow-y-auto break-words">
-            {state.refined ? <p dir="auto" className="whitespace-pre-wrap text-base leading-8">{text || 'No text after cleanup. Your original is still available.'}</p> : state.segments.map((segment, i) => <div key={i} className={cn('flex items-start gap-3 rounded-xl p-3 transition-colors', i === activeSegment && 'bg-accent')}>
+            {state.refined ? <TranscriptEditor value={text} label="Edit refined transcript" placeholder="No text after cleanup. Type here or show the original." disabled={state.busy} onChange={event => editTranscript(event.target.value)} /> : state.segments.map((segment, i) => <div key={i} className={cn('flex items-start gap-3 rounded-xl p-3 transition-colors', i === activeSegment && 'bg-accent')}>
               <Button variant="ghost" className="timestamp mt-1 shrink-0 font-mono text-xs text-muted-foreground hover:text-foreground" title="Approximate timestamp" aria-label={`Play video from ${formatTime(segment.start)}`} onClick={() => {
                 try { video.current.currentTime = segment.start; void video.current.play().catch(() => {}); }
                 catch { update({ error: 'This browser cannot seek in the preview. Try its playback controls.' }); }
-              }}>{formatTime(segment.start)}</Button><p dir="auto" className="min-w-0 text-base leading-7">{segment.text}</p>
+              }}>{formatTime(segment.start)}</Button><TranscriptEditor value={segment.text} label={`Edit transcript at ${formatTime(segment.start)}`} disabled={state.busy} onChange={event => editTranscript(event.target.value, i)} />
             </div>)}
           </div>
           <div className="mt-auto flex flex-wrap justify-between gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><span>{wordCount(text, state.resultLanguage).toLocaleString()} words · {languageLabel(state.resultLanguage)}</span>{!state.refined && <span>Click a timestamp to listen</span>}</div>

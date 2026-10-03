@@ -4,11 +4,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import FontCycleCreator from '../../src/components/FontCycleCreator';
 import HorizontalToVertical from '../../src/components/HorizontalToVertical';
 import TranscribeReels from '../../src/components/TranscribeReels';
+import Moodboard from '../../src/components/Moodboard';
 
 for (const [name, Tool, action] of [
   ['Font cycle', FontCycleCreator, 'Choose an image'],
   ['Horizontal to vertical', HorizontalToVertical, 'Choose a video'],
   ['Video to text', TranscribeReels, 'Choose a video'],
+  ['Moodboard', Moodboard, 'Choose a video'],
 ] as const) {
   test(`${name} starts with a file picker, without an empty editor or configuration`, () => {
     const html = renderToStaticMarkup(<Tool />);

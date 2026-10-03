@@ -15,9 +15,9 @@ self.addEventListener = (_event, listener) => parentPort.on('message', data => l
 self.postMessage = data => parentPort.postMessage(data);
 `;
 
-test('real worker uses correct language options, reports progress, reuses/switches models, and catches errors', async () => {
+test('real worker uses correct language options, reports progress, reuses/switches models, and catches errors', { timeout: 25000 }, async () => {
   const instance = new Worker(new URL(`data:text/javascript,${encodeURIComponent(adapter + core + '\n' + worker)}`));
-  async function run(id, language) {
+  async function run(id, language, modelSize) {
     const audio = new Float32Array(101360).fill(0.02);
     const messages = [];
     const response = new Promise((resolve, reject) => {
@@ -26,13 +26,13 @@ test('real worker uses correct language options, reports progress, reuses/switch
         if (message.id !== id) return;
         messages.push(message);
         if (message.type === 'complete' || message.type === 'error') {
-          clearTimeout(timer); instance.off('message', handler); resolve(message);
+          clearTimeout(timer); instance.off('message', handler); instance.off('error', reject); resolve(message);
         }
       };
       instance.on('message', handler);
       instance.once('error', reject);
     });
-    instance.postMessage({type:'transcribe',id,language,audio}, [audio.buffer]);
+    instance.postMessage({type:'transcribe',id,language,modelSize,audio}, [audio.buffer]);
     assert.equal(audio.byteLength, 0, 'audio buffer was transferred, not copied');
     return {result:await response,messages};
   }
@@ -49,5 +49,25 @@ test('real worker uses correct language options, reports progress, reuses/switch
     assert.equal(failure.result.type,'error'); assert.equal(failure.result.stage,'inference');
     const invalid = await run(5,'auto');
     assert.equal(invalid.result.type,'error'); assert.match(invalid.result.detail,/Choose the language/);
+    const invalidSize = await run(6,'en','huge');
+    assert.equal(invalidSize.result.type,'error'); assert.match(invalidSize.result.detail,/quality/);
+    for (const [i, [size, model]] of [
+      ['tiny', 'onnx-community/whisper-tiny.en'],
+      ['base', 'onnx-community/whisper-base.en'],
+      ['small', 'onnx-community/whisper-small.en'],
+      ['medium', 'Xenova/whisper-medium.en'],
+      ['large-v3', 'Xenova/whisper-large-v3'],
+    ].entries()) {
+      const selected = await run(7 + i, 'en', size);
+      assert.equal(selected.result.type, 'complete', selected.result.detail);
+      assert.ok(selected.messages.some(m => m.type === 'ready' && m.model === model));
+      assert.ok(selected.messages.some(m => m.type === 'download'), 'changing quality loads the selected model');
+    }
+    const reuseLarge = await run(12, 'en', 'large-v3');
+    assert.equal(reuseLarge.result.type, 'complete');
+    assert.ok(!reuseLarge.messages.some(m => m.type === 'download'));
+    const frenchMedium = await run(13, 'fr', 'medium');
+    assert.equal(frenchMedium.result.type, 'complete', frenchMedium.result.detail);
+    assert.ok(frenchMedium.messages.some(m => m.type === 'ready' && m.model === 'Xenova/whisper-medium'));
   } finally { await instance.terminate(); }
 });

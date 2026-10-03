@@ -1,13 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MODELS, LANGUAGES, modelForLanguage, formatTime, formatBytes, validateVideoFile, MAX_FILE_BYTES, numberOfWindows, processedSeconds, wordCount, normalizeSegments, markdownTranscript } from '../../src/lib/transcribe/core.js';
+import { WHISPER_MODELS, LANGUAGES, modelForLanguage, formatTime, formatBytes, validateVideoFile, MAX_FILE_BYTES, numberOfWindows, processedSeconds, wordCount, normalizeSegments, markdownTranscript } from '../../src/lib/transcribe/core.js';
 
-test('English uses tiny.en; every other supported language uses tiny multilingual', () => {
-  assert.equal(modelForLanguage('en'), MODELS.en);
+test('quality selects each model with an English-only variant where available', () => {
+  assert.equal(modelForLanguage('en'), 'onnx-community/whisper-tiny.en');
   assert.equal(LANGUAGES.length, 98);
   assert.equal(new Set(LANGUAGES.map(([code]) => code)).size, 98);
-  for (const [code] of LANGUAGES) assert.equal(modelForLanguage(code), MODELS.other);
+  const repos = ['onnx-community/whisper-tiny', 'onnx-community/whisper-base', 'onnx-community/whisper-small', 'Xenova/whisper-medium', 'Xenova/whisper-large-v3'];
+  assert.equal(WHISPER_MODELS.length, repos.length);
+  WHISPER_MODELS.forEach((model, i) => {
+    assert.equal(modelForLanguage('en', model.id), repos[i] + (i === 4 ? '' : '.en'));
+    for (const [code] of LANGUAGES) assert.equal(modelForLanguage(code, model.id), repos[i]);
+    assert.ok(model.mb > (WHISPER_MODELS[i - 1]?.mb ?? 0));
+  });
   for (const invalid of ['', 'auto', undefined, 'zz']) assert.throws(() => modelForLanguage(invalid));
+  for (const invalid of ['', 'huge', null, 2]) assert.throws(() => modelForLanguage('en', invalid), /quality/);
 });
 test('time labels handle boundaries, hours, and invalid input', () => {
   assert.equal(formatTime(0), '00:00'); assert.equal(formatTime(59.99), '00:59');

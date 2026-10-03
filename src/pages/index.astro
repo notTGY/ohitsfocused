@@ -2,16 +2,18 @@
 import '@/styles/global.css';
 const canonical = new URL('/', Astro.site);
 const seoTitle = 'Free video tools that run in your browser';
-const description = 'Make videos with cycling fonts, convert horizontal video to a vertical split screen, and transcribe video to text. Free, no accounts. Files stay on your device.';
+const description = 'Make videos with cycling fonts, convert wide video to vertical, transcribe speech, and make a video moodboard. Free browser tools. Files stay on your device.';
 const tools = [
   { href: 'font-cycle', name: 'Font cycle', description: 'Make a video with changing fonts over your image.' },
   { href: 'horizontal-to-vertical', name: 'Horizontal to vertical', description: 'Convert a wide video to vertical with two stacked crops.' },
   { href: 'transcribe-reels', name: 'Video to text', description: 'Transcribe a video to text without uploading it.' },
+  { href: 'moodboard', name: 'Moodboard', description: 'Sample video frames into one reference image.' },
 ];
 const articles = [
   { href: '/blog/font-cycle/', title: 'Make a video with cycling fonts', image: '/blog/thumbs/font-cycle.svg', alt: 'The same coffee image and words shown in three different fonts' },
   { href: '/blog/horizontal-to-vertical/', title: 'Convert horizontal video to vertical', image: '/blog/thumbs/horizontal-to-vertical.svg', alt: 'Two cyclists cropped from a wide video and stacked in a portrait frame' },
   { href: '/blog/transcribe-video/', title: 'Transcribe video without uploading it', image: '/blog/thumbs/transcribe-video.svg', alt: 'A speaker in a video beside a timestamped transcript' },
+  { href: '/blog/video-moodboard/', title: 'Give AI a video reference with a moodboard', image: '/blog/thumbs/moodboard.svg', alt: 'A video timeline turning into nine different scenes from a bike ride and café stop' },
 ];
 const schema = {
   '@context': 'https://schema.org',
@@ -55,7 +57,7 @@ const schema = {
       <p class="text-xs text-muted-foreground">No accounts. Your files stay on this device.</p>
       <section aria-label="Blog" class="mt-8 border-t border-border pt-5 text-sm">
         <h2 class="text-xs font-medium text-muted-foreground">Blog</h2>
-        <nav aria-label="Blog articles" class="mt-3 grid gap-5 sm:grid-cols-3">
+        <nav aria-label="Blog articles" class="mt-3 grid gap-5 sm:grid-cols-2">
           {articles.map(article => <a href={article.href} class="group min-w-0 space-y-2 py-1">
             <img src={article.image} alt={article.alt} width="480" height="320" loading="lazy" decoding="async" class="aspect-[3/2] w-full rounded-md object-cover" />
             <span class="block leading-5 group-hover:underline underline-offset-4">{article.title}</span>

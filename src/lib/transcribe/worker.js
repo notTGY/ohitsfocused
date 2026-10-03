@@ -21,13 +21,13 @@ async function loadRuntime() {
 self.addEventListener('message', async ({ data }) => {
   if (data?.type !== 'transcribe' || running) return;
   running = true;
-  const { id, language, audio } = data;
+  const { id, language, modelSize = 'tiny', audio } = data;
   const send = (type, payload = {}) => self.postMessage({ id, type, ...payload });
   let stage = 'load';
 
   try {
     if (!(audio instanceof Float32Array) || !audio.length) throw new Error('No audio samples were received.');
-    const modelId = modelForLanguage(language);
+    const modelId = modelForLanguage(language, modelSize);
     send('status', { phase: 'loading', label: 'Loading transcription engine…' });
     const { pipeline, WhisperTextStreamer } = await loadRuntime();
 
@@ -36,7 +36,7 @@ self.addEventListener('message', async ({ data }) => {
       transcriber = null;
       loadedModel = null;
       const files = new Map();
-      send('status', { phase: 'loading', label: 'Loading Whisper tiny…' });
+      send('status', { phase: 'loading', label: `Loading Whisper ${modelSize}…` });
       transcriber = await pipeline('automatic-speech-recognition', modelId, {
         device: 'wasm',
         dtype: 'q8',
@@ -99,7 +99,7 @@ self.addEventListener('message', async ({ data }) => {
       streamer,
     };
     // English-only models reject language/task, so do NOT send them for .en.
-    if (language !== 'en') Object.assign(options, { language, task: 'transcribe' });
+    if (!modelId.endsWith('.en')) Object.assign(options, { language, task: 'transcribe' });
     const output = await transcriber(audio, options);
     send('complete', { output, duration });
   } catch (error) {

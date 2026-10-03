@@ -5,12 +5,16 @@ export const STRIDE_SECONDS = 5;
 export const MAX_FILE_BYTES = 250 * 1024 * 1024;
 export const MAX_DURATION_SECONDS = 30 * 60;
 export const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js';
-export const MODELS = Object.freeze({
-  en: 'onnx-community/whisper-tiny.en',
-  other: 'onnx-community/whisper-tiny',
-});
+// Approximate decimal MB of the q8 encoder and merged decoder on Hugging Face.
+export const WHISPER_MODELS = Object.freeze([
+  { id: 'tiny', label: 'Tiny', repo: 'onnx-community/whisper-tiny', mb: 41, overview: 'Fastest. Good for clear speech.' },
+  { id: 'base', label: 'Base', repo: 'onnx-community/whisper-base', mb: 77, overview: 'Better accuracy, still quick.' },
+  { id: 'small', label: 'Small', repo: 'onnx-community/whisper-small', mb: 249, overview: 'More accurate with accents and noise. Slower.' },
+  { id: 'medium', label: 'Medium', repo: 'Xenova/whisper-medium', mb: 776, overview: 'Higher accuracy. Slow; best on a computer.' },
+  { id: 'large-v3', label: 'Large v3', repo: 'Xenova/whisper-large-v3', mb: 1560, overview: 'Highest accuracy here. Very slow; needs plenty of memory.' },
+]);
 
-// Whisper tiny's 98 non-English language tokens. Explicit selection is intentional:
+// Whisper's 98 non-English language tokens. Explicit selection is intentional:
 // Transformers.js 3.8.1 does NOT implement Whisper language auto-detection.
 export const LANGUAGES = Object.freeze([
   ['af', 'Afrikaans'], ['sq', 'Albanian'], ['am', 'Amharic'], ['ar', 'Arabic'],
@@ -40,10 +44,11 @@ export const LANGUAGES = Object.freeze([
   ['yi', 'Yiddish'], ['yo', 'Yoruba'],
 ]);
 
-export function modelForLanguage(language) {
-  if (language === 'en') return MODELS.en;
-  if (!LANGUAGES.some(([code]) => code === language)) throw new Error('Choose the language spoken in your video.');
-  return MODELS.other;
+export function modelForLanguage(language, size = 'tiny') {
+  if (language !== 'en' && !LANGUAGES.some(([code]) => code === language)) throw new Error('Choose the language spoken in your video.');
+  const model = WHISPER_MODELS.find(model => model.id === size);
+  if (!model) throw new Error('Choose a transcription quality.');
+  return model.repo + (language === 'en' && size !== 'large-v3' ? '.en' : '');
 }
 
 export function languageLabel(language) {

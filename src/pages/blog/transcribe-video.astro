@@ -26,9 +26,15 @@ const description = 'Transcribe video to text in your browser without uploading 
 
     <section class="space-y-3">
       <h2 class="text-lg font-medium">Transcribe, then review the timestamps</h2>
-      <p class="text-sm leading-7 text-muted-foreground">Press <em>Transcribe video</em> and keep the page open while the audio is prepared and processed. On first use, the browser downloads the Whisper Tiny model, about 41 MB. The video itself stays on your device; the speech model runs locally in a browser worker.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Choose a quality on the slider, then press <em>Transcribe video</em> and keep the page open while the audio is prepared and processed. Tiny is the default, with an approximately 41 MB model download on first use. Larger models trade more download size, memory, and processing time for accuracy; the slider shows a short overview of each. The video itself stays on your device.</p>
       <p class="text-sm leading-7 text-muted-foreground">When the transcript is ready, each passage has an approximate timestamp. Select one to seek the video to that moment and check names, numbers, and phrases that matter. Automatic transcription can miss words or punctuation, especially when audio is noisy, so treat the result as a draft to review.</p>
+      <p class="text-sm leading-7 text-muted-foreground">Edit any missed words directly in the transcript. Copy and Markdown both use your corrections.</p>
       <p class="text-sm leading-7 text-muted-foreground">Copy places the transcript on your clipboard. Markdown saves the transcript text in a small file. The timestamps help you review the video in the page, but the downloaded Markdown contains the text rather than subtitle timing data such as SRT or VTT.</p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-lg font-medium">Pair the transcript with a visual reference</h2>
+      <p class="text-sm leading-7 text-muted-foreground">Use <a href="/tools/moodboard/" class="underline underline-offset-4">Moodboard</a> to sample frames from the same video into one image. Attach the grid and include the corrected transcript when asking an image-capable AI about the clip's story or visual style. The <a href="/blog/video-moodboard/" class="underline underline-offset-4">moodboard guide</a> shows the workflow and a sample prompt.</p>
     </section>
 
     <section class="space-y-3">
